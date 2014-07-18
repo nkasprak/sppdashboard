@@ -479,7 +479,7 @@ try {
 					};
 				}
 				
-				/*Get all the rows of the main table*/
+				/*Get all the rows of the main table(s)*/
 				var mainTableTrs = $("#tabBodies .tabBody .mainTableArea table tbody tr");
 				
 				/*Loop through the table rows*/
@@ -505,24 +505,30 @@ try {
 							cValue = $(tr).find("td." + colId + " span.sortData").html();
 							
 						/*Otherwise just use the text of the cell*/
-						} else {
+						} else if ($(tr).find("td." + colId).length > 0) {
 							cValue = $(tr).children("td." + colId).html();
+						} else {
+							cValue = "notInThisTab";	
 						}
 						
 						/*If the comparor function defined above tells us to hide it, hide it*/
-						if (comparor(cValue,filterArray[j]) == false) {
-							showRow = false;
+						if (cValue != "notInThisTab") {
+							if (comparor(cValue,filterArray[j]) == false) {
+								showRow = false;
+							}
 						}
-						
+	
 						/*Or if the cell is blank, hide it in that situation as well*/
 						if (cValue == "") showRow = false;
 					}
 					
 					/*Actually show/hide the row*/
-					if (showRow == false) {
-						$("#tabBodies .tab" + tab_id + " table tr." + state).hide();
-					} else {
-						$("#tabBodies .tab" + tab_id + " table tr." + state).show();	
+					if (cValue != "notInThisTab") {
+						if (showRow == false) {
+							$("#tabBodies .tab" + tab_id + " table tr." + state).hide();
+						} else {
+							$("#tabBodies .tab" + tab_id + " table tr." + state).show();	
+						}
 					}
 				} /*end loop through mainTableTrs*/
 				
@@ -611,6 +617,7 @@ try {
 					
 					//sort the value array (so we can easily find the median)
 					vArray.sort();
+					
 					
 					//If there's no data to do anything with, shut it down
 					if (vArray.length == 0) return "&nbsp;";
