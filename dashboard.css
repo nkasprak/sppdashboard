@@ -1,0 +1,370 @@
+@charset "utf-8";
+/* CSS Document */
+/*Page styles*/
+body {
+	font-weight:600;
+	margin:0px;
+	padding:0px;
+	font-family:'Source Sans Pro', Arial, Helvetica, sans-serif;
+	font-size:14px;	
+	background-color:#ddd;
+	color:#444;
+	word-wrap:break-word;
+	
+}
+
+select {
+	font-family:'Source Sans Pro', Arial, Helvetica, sans-serif;	
+}
+
+body div {
+	box-sizing:border-box;	
+}
+
+div#wrapper, div#ie7 {
+	min-width:940px;
+	width:98%;
+	margin-left:auto;
+	margin-right:auto;
+	
+	box-sizing:border-box;
+	background-color:#fff;
+	-webkit-box-shadow: 0px 0px 20px 0px rgba(0, 0, 0, 0.53);
+	-moz-box-shadow:    0px 0px 20px 0px rgba(0, 0, 0, 0.53);
+	box-shadow:         0px 0px 20px 0px rgba(0, 0, 0, 0.53);
+	margin-bottom:150px;
+}
+
+div#ie7 {
+	padding:50px;
+	padding-top:200px;
+	padding-bottom:200px;
+	height:100%;
+	width:70%;
+	display:none;	
+}
+
+/*Header and tabs*/
+div#wrapper div#header {
+	height:100px;	
+}
+
+div#header {
+	text-align:center;
+	vertical-align:middle;	
+	font-size:24px;
+	padding-top:2em;
+	background-color:#888;
+	color:#fff;
+}
+
+div.blue {
+
+	
+	padding-bottom:2em;
+	position:relative;
+}
+
+div#introText {
+		padding:15px;
+	padding-top:3px;
+	padding-bottom:3px;
+
+	margin:0px;
+	
+}
+
+ul#tabs {
+	height:2em;
+	padding:5px 5px 0px 5px;	
+	list-style-type:none;
+	margin:0px;
+	position:absolute;
+	width:auto;
+	left:0px;
+	right:0px;
+	background-color:#ddd;
+}
+
+ul#tabs .tab {
+	box-sizing:border-box;
+	height:100%;
+	display:block;
+	float:left;
+	margin:0px 5px 0px 5px;
+	padding:0px 30px 0px 30px;
+	-webkit-border-radius:6px 6px 0px 0px;
+	-moz-border-radius:6px 6px 0px 0px;
+	border-radius:6px 6px 0px 0px;
+	list-style-type:none;
+	font-size:150%;
+	color:#fff;
+	background-color:#625948;
+	cursor:pointer;
+}
+
+ul#tabs .tab.selected {
+	background-color:#FDF8F0;
+	color:#625948;
+	border-bottom:0px;
+}
+
+/*Main body*/
+
+div.tabBody {
+	background-color:#FDF8F0;	
+}
+
+div.tab1 {
+	background-color:#FDF8F0;	
+}
+
+
+div.tabBody div.sortFilterArea {
+	padding:5px;
+	
+	color:#625948;
+	position:relative;
+}
+
+div.tabBody div.sortFilterArea div.sortArea {
+	
+	margin-left:8px;
+	float:left;
+}
+
+div.tabBody div.sortFilterArea div.filterArea {
+	border-left:2px solid #ddd;
+	padding-left:20px;
+	margin-left:20px;
+	float:left;
+}
+
+div.tabBody div.sortFilterArea div.filterArea p.label {
+	float:left;	
+}
+
+div.tabBody div.sortFilterArea div.filterArea ul {
+	float:left;	
+}
+
+div.tabBody div.sortFilterArea div.filterArea ul li.filterAdd span{
+	cursor:pointer;
+}
+div.tabBody div.sortFilterArea div.filterArea ul li.filterAdd span:hover {
+	text-decoration:underline;
+}
+
+div.tabBody div.sortFilterArea div.filterArea ul li.filterAdd span.extras {
+	display:none;
+}
+
+div.tabBody div.sortFilterArea div.filterArea ul li.filterAdd span.extras:hover {
+	text-decoration:none;
+}
+
+div.tabBody div.sortFilterArea div.filterArea span.datePicker {
+	display:none;	
+}
+
+div.tabBody div.sortFilterArea div.filterArea button.apply {
+	display:none;	
+}
+
+div.dataDisplayArea {
+	background-color:#fff;
+	display:block;
+	clear:both;
+	position:relative;
+	margin:0px;
+}
+
+div.dataDisplayArea div.questionList {
+	width:225px;
+	padding:5px;
+	height:100%;
+	float:left;
+	overflow-y:scroll;
+	overflow-x:hidden;
+	padding-left:10px;
+	padding-right:0px;
+	font-size:90%;
+	line-height:130%;
+	box-sizing:border-box;
+	background-color:#FDF8F0;
+	border-top:2px solid #ddd;
+	position:relative;
+}
+
+div.dataDisplayArea div.questionList div.xbox {
+	width:13px;
+	height:13px;
+	position:absolute;
+	top:8px;
+	right:8px;
+	background:url(x_box.png);
+	cursor:pointer;
+}
+
+div.dataDisplayArea div.questionList ul {
+	padding-left:5px;
+	padding-right:10px;
+	margin-left:10px;	
+}
+
+div.dataDisplayArea div.questionList ul li {
+	padding-left:0px;
+	margin-left:10px;	
+	margin-bottom:0.3em;
+	cursor:pointer;
+}
+
+div.dataDisplayArea div.questionList ul li:hover {
+    text-decoration:underline;
+}
+
+div.dataDisplayArea div.tableArea {
+	position:absolute;
+	left:0px;
+	bottom:0px;
+	right:0px;
+	top:0px;
+	height:100%;
+	width:auto;
+	margin-left:225px;
+	box-sizing:border-box;
+	border-top:2px solid #ddd;
+}
+
+div.dataDisplayArea div.tableArea div.openArrow{
+	width:42px;
+	height:49px;
+	background:url(expand_arrow.png);
+	position:absolute;
+	top:10px;
+	left:10px;
+	cursor:pointer;
+	display:none;
+}
+
+div.dataDisplayArea div.tableArea table {
+	table-layout:fixed;	
+	background-color:#fff;
+	
+}
+
+div.dataDisplayArea div.tableArea table span.sortData {
+	display:none;	
+}
+
+
+
+div.dataDisplayArea div.tableArea div {	
+	box-sizing:border-box;
+	font-size:100%;
+}
+
+div.dataDisplayArea div.tableArea div.leftTableArea{
+	position:absolute;
+	top:0px;
+	bottom:0px;
+	width:125px;
+	height:auto;
+	margin-top:70px;
+	overflow:hidden;
+}
+
+div.dataDisplayArea div.tableArea div.leftTableArea table {
+	width:100%;	
+}
+
+div.dataDisplayArea div.tableArea div.tableWrapper {
+	font-size:100%;	
+}
+
+div.dataDisplayArea div.tableArea div.leftTableArea .tableWrapper{
+	padding-bottom:500px;
+}
+
+
+div.dataDisplayArea div.tableArea div.leftTableArea td{
+	padding:5px;
+	
+	font-weight:bold;
+	color:#003768;	
+}
+
+div.dataDisplayArea div.tableArea div.topTableArea{
+	width:auto;
+	left:0px;
+	right:0px;
+	position:absolute;
+	height:70px;
+	margin-left:125px;
+	overflow:hidden;
+	font-size:110%;
+	font-weight:bold;
+	color:#003768;
+	
+}
+
+div.dataDisplayArea div.tableArea div.topTableArea .tableWrapper {
+	margin-right:500px;
+	width:9999px;
+}
+
+div.dataDisplayArea div.tableArea div.topTableArea table {
+	height:100%;	
+	
+}
+
+div.dataDisplayArea div.tableArea div.topTableArea table td {
+	cursor:pointer;	
+}
+
+div.dataDisplayArea div.tableArea table tr.alt td{
+	background-color:#e9eff2;
+}
+
+div.dataDisplayArea div.tableArea table td{
+	border-right:solid 2px #ddd;
+}
+
+div.dataDisplayArea div.tableArea div.topTableArea td {
+	vertical-align:bottom;
+	padding:5px;
+	
+}
+
+div.dataDisplayArea div.tableArea div.mainTableArea .tableWrapper {
+	width:9999px;
+}
+
+
+div.dataDisplayArea div.tableArea div.mainTableArea{
+	width:auto;
+	height:auto;
+	position:absolute;
+	margin-left:125px;
+	margin-top:70px;
+	top:0px;
+	right:0px;
+	bottom:0px;
+	left:0px;	
+	overflow:scroll;
+}
+
+div.dataDisplayArea div.tableArea div.mainTableArea table{
+	table-layout:auto;
+}
+
+div.dataDisplayArea div.tableArea thead.dummySort {
+	display:none;	
+}
+
+div.dataDisplayArea div.tableArea div.mainTableArea table td{
+	padding:5px;
+	
+}
+
+
