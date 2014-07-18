@@ -31,7 +31,7 @@ while ($row = $columnsResult->fetch_array(MYSQLI_ASSOC)) {
 }
 
 
-
+/*Sorts columns by tab first, then order within tab second*/
 uasort($columnsArr, function($a,$b) {
 	if ($a["tabAssoc"] == $b["tabAssoc"]) return $a["Order"] - $b["Order"];
 	else return $a["tabAssoc"] - $b["tabAssoc"];
