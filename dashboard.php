@@ -1,6 +1,6 @@
-<?php include("config.php"); ?>
-<?php 
+<?php include("config.php"); 
 
+/*Makes the date conversion consistent between testing and production*/
 date_default_timezone_set('America/New_York');
 
 $mysqli = new mysqli(DB_SERVER,DB_USER,DB_PASSWORD,DB_DATABASE);
@@ -14,21 +14,29 @@ $statesResult = $mysqli->query($statesQuery);
 $columnsResult = $mysqli->query($columnsQuery);
 $dataResult = $mysqli->query($dataQuery);
 
+/*Will fill these with results from query*/
 $statesArr = array();
 $columnsArr = array();
 $tabsArr = array();
-
-
 $dataArr = array();
 
+/*Fill arrays with query results*/
 while ($row = $statesResult->fetch_array(MYSQLI_ASSOC)) {
 	$statesArr[$row["id"]] = $row["states"];	
 }
 
+while ($row = $dataResult->fetch_array(MYSQLI_ASSOC)) {
+	$dataArr[$row["key"]] = $row;	
+}
+
 while ($row = $columnsResult->fetch_array(MYSQLI_ASSOC)) {
 	$columnsArr[$row["id"]] = $row;	
-	array_push($tabsArr,$row["tabAssoc"]);
+	array_push($tabsArr,$row["tabAssoc"]); /*Will use to keep track of max/min tabs ids*/
 }
+
+/*Used to figure out how many tab links to put out*/
+$lowTab = min($tabsArr);
+$highTab = max($tabsArr);
 
 
 /*Sorts columns by tab first, then order within tab second*/
@@ -37,17 +45,7 @@ uasort($columnsArr, function($a,$b) {
 	else return $a["tabAssoc"] - $b["tabAssoc"];
 });
 
-
-
-$lowTab = min($tabsArr);
-$highTab = max($tabsArr);
-
-while ($row = $dataResult->fetch_array(MYSQLI_ASSOC)) {
-	$dataArr[$row["key"]] = $row;	
-}
-
-
-
+/*Used in various places to output column <option> elements into selectors*/
 function colMenuOps($tab) {
 	global $columnsArr;
 	$currentTab = 1;
@@ -63,6 +61,4 @@ function colMenuOps($tab) {
 		}
 	}
 }
-
-
 ?>
