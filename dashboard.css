@@ -288,7 +288,7 @@ div.dataDisplayArea div.tableArea div.leftTableArea .tableWrapper{
 
 
 div.dataDisplayArea div.tableArea div.leftTableArea td{
-	padding:5px;
+	padding:2px;
 	
 	font-weight:bold;
 	color:#003768;	
@@ -332,7 +332,7 @@ div.dataDisplayArea div.tableArea table td{
 
 div.dataDisplayArea div.tableArea div.topTableArea td {
 	vertical-align:bottom;
-	padding:5px;
+	padding:2px;
 	
 }
 
@@ -363,7 +363,7 @@ div.dataDisplayArea div.tableArea thead.dummySort {
 }
 
 div.dataDisplayArea div.tableArea div.mainTableArea table td{
-	padding:5px;
+	padding:2px;
 	
 }
 

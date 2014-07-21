@@ -344,7 +344,7 @@ try {
 				is to figure out the first column not being used as a filter and make that
 				the default selection for the new one that's being added.*/
 				if (filters.length > 1) {
-					var usedFilters = []
+					var usedFilters = [];
 					
 					/*Loop through current filters*/
 					for (var i = 0;i<=filters.length-2;i++) {
