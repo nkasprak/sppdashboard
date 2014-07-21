@@ -196,7 +196,7 @@ try {
 				var remainingHeight = totalHeight - preHeight;
 				dataArea.height(remainingHeight);
 				$("div.dataDisplayArea div.tableArea div.topTableArea").height($("div.dataDisplayArea div.tableArea div.topTableArea table").height());
-				$("div.dataDisplayArea div.tableArea div.mainTableArea, div.dataDisplayArea div.tableArea div.leftTableArea").css("margin-top",$("div.dataDisplayArea div.tableArea div.topTableArea table").height());
+				$("div.dataDisplayArea div.tableArea div.mainTableArea, div.dataDisplayArea div.tableArea div.leftTableArea").css("margin-top",$("#tabBodies .tab" + tab + " div.dataDisplayArea div.tableArea div.topTableArea table").height());
 			},
 			
 			/*Synchronize scrolling. Since we're dealing with three separate tables that look like one, this function runs

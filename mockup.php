@@ -47,7 +47,7 @@
             
             <ul id="tabs">
             <?php for ($tabIndex = $lowTab;$tabIndex<=$highTab;$tabIndex++) {
-				echo '<li class="tab" id="tabPicker'.$tabIndex.'">Tab '.$tabIndex."</li>\n";
+				echo '<li class="tab" id="tabPicker'.$tabIndex.'">'.$tabsArr[$tabIndex]["title"]."</li>\n";
 			} ?>
             </ul><!--end ul#tabs-->
         </div> <!--end div.blue-->

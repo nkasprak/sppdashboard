@@ -9,16 +9,22 @@ $mysqli->set_charset("utf8");
 $statesQuery = "SELECT * FROM statenames";
 $columnsQuery = "SELECT * FROM columns ORDER BY `Order`";
 $dataQuery = "SELECT * FROM data";
+$tabsQuery = "SELECT * FROM tabs";
 
 $statesResult = $mysqli->query($statesQuery);
 $columnsResult = $mysqli->query($columnsQuery);
 $dataResult = $mysqli->query($dataQuery);
+$tabsResult = $mysqli->query($tabsQuery);
+
+$mysqli->close();
 
 /*Will fill these with results from query*/
 $statesArr = array();
 $columnsArr = array();
 $tabsArr = array();
 $dataArr = array();
+
+$tabBounds = array();
 
 /*Fill arrays with query results*/
 while ($row = $statesResult->fetch_array(MYSQLI_ASSOC)) {
@@ -31,12 +37,17 @@ while ($row = $dataResult->fetch_array(MYSQLI_ASSOC)) {
 
 while ($row = $columnsResult->fetch_array(MYSQLI_ASSOC)) {
 	$columnsArr[$row["id"]] = $row;	
-	array_push($tabsArr,$row["tabAssoc"]); /*Will use to keep track of max/min tabs ids*/
+	
+}
+
+while ($row = $tabsResult->fetch_array(MYSQLI_ASSOC)) {
+	$tabsArr[$row["tab_id"]] = $row;	
+	array_push($tabBounds,$row["tab_id"]); /*Will use to keep track of max/min tabs ids*/
 }
 
 /*Used to figure out how many tab links to put out*/
-$lowTab = min($tabsArr);
-$highTab = max($tabsArr);
+$lowTab = min($tabBounds);
+$highTab = max($tabBounds);
 
 
 /*Sorts columns by tab first, then order within tab second*/
