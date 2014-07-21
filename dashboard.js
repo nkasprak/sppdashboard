@@ -19,6 +19,28 @@ try {
 		//private variable - use public setActiveTab() function to change
 		var activeTab = 1;
 		
+		var footersNeedCalculation = {}; //indexed by tab, i.e. {1: true, 2: false} would 
+										 //indicate that tab 1 needs its footer recalculated, 
+										 //tab 2 does not
+
+		var numTabs = $("ul#tabs li.tab").length;
+		
+		for (var i=1;i<=numTabs;i++) {
+			footersNeedCalculation[i] = true;	
+		}
+		
+		//storage for tasks to run every second
+		var periodicTasks = {};
+		var periodicTimer = setInterval(function() {
+			for (task in periodicTasks) {
+				try {
+					periodicTasks[task]();
+				} catch (ex) {
+					console.log("error executing task " + task);	
+				}
+			}
+		},5000);
+		
 		//private functions follow
 		
 		/*The "Freeze panes" - like behavior is accomplished through having three separate tables that look like
@@ -123,6 +145,15 @@ try {
 			//Gets the currently displayed tab
 			getActiveTab: function() {
 				return activeTab;	
+			},
+			
+			//Adds a function to be executed in the period tasks private method that runs every second (useful for background stuff)
+			addPeriodicTask: function(taskID, task) {
+				periodicTasks[taskID] = task;
+			},
+			
+			removePeriodicTask: function(taskID) {
+				delete periodicTasks[taskID];
 			},
 			
 			//Changes the currently displayed tab
@@ -236,9 +267,10 @@ try {
 			assignAltClasses: function() {
 				var tab = sfpDashboard.getActiveTab();
 				
-				/*The :visible selector filters out any rows hidden by filters*/
-				var leftTableRows = $("#tabBodies .tab" + tab + " .leftTableArea table tbody tr:visible");
-				var mainTableRows = $("#tabBodies .tab" + tab + " .mainTableArea table tbody tr:visible");
+				/*The data-include attribute filters out any hidden cells. (Previously, I used :visible for this but
+				I want to be able to do this in the background for hidden tabs)*/
+				var leftTableRows = $("#tabBodies .tab" + tab + ' .leftTableArea table tbody tr[data-include="true"]');
+				var mainTableRows = $("#tabBodies .tab" + tab + ' .mainTableArea table tbody tr[data-include="true"]');
 				for (var i = 0;i<Math.max(leftTableRows.length,mainTableRows.length);i++) {
 					if (leftTableRows[i]) $(leftTableRows[i]).removeClass("alt");
 					if (mainTableRows[i]) $(mainTableRows[i]).removeClass("alt");
@@ -430,6 +462,7 @@ try {
 			
 			/*Apply the currently displayed filters. This is a bit complicated, so here goes...*/
 			applyFilters: function(tab_id) {
+				footersNeedCalculation[tab_id] = true;
 				
 				/*Loop through relevant DOM elements and extract the necessary data*/
 				var filterArray = function() {
@@ -486,6 +519,7 @@ try {
 				var state;
 				var tr;
 				var showRow;
+				var cValue;
 				for (var i = 0;i<mainTableTrs.length;i++) {
 					tr = mainTableTrs[i];
 					
@@ -526,8 +560,10 @@ try {
 					if (cValue != "notInThisTab") {
 						if (showRow == false) {
 							$("#tabBodies .tab" + tab_id + " table tr." + state).hide();
+							$("#tabBodies .tab" + tab_id + " table tr." + state).attr("data-include", "false");
 						} else {
-							$("#tabBodies .tab" + tab_id + " table tr." + state).show();	
+							$("#tabBodies .tab" + tab_id + " table tr." + state).show();
+							$("#tabBodies .tab" + tab_id + " table tr." + state).attr("data-include", "true");	
 						}
 					}
 				} /*end loop through mainTableTrs*/
@@ -598,10 +634,11 @@ try {
 					return "&nbsp;";	
 				} else {
 					
-					var tab = sfpDashboard.getActiveTab();
+					//var tab = sfpDashboard.getActiveTab();
+					var tab = getColumnDataAttr(col_id,"tabgroup");
 					
 					//Otherwise, get all the visible cells of the relevant column
-					var tds = $("#tabBodies .tab" + tab + " .mainTableArea table tbody td." + col_id + ":visible");
+					var tds = $("#tabBodies .tab" + tab + " .mainTableArea table tbody tr" + '[data-include="true"]' + " td." + col_id);
 					
 					//Loop through the cells and store the values in vArray;
 					var vArray = [];
@@ -655,10 +692,13 @@ try {
 			},
 			
 			//Calculate max, min, average, median for all columns
-			fillFooter: function() {
+			fillFooter: function(tabToFill) {
+				
+				//added this option to enable doing these calculations on hidden tabs in the background to speed up tab switching
+				if (!tabToFill) tabToFill = sfpDashboard.getActiveTab();
 				
 				//get <tr>'s in the <tfoot> of the main table
-				var footerTrs = $("#tabBodies .tab" + sfpDashboard.getActiveTab() + " .mainTableArea table tfoot tr");
+				var footerTrs = $("#tabBodies .tab" + tabToFill + " .mainTableArea table tfoot tr");
 				
 				//Loop through each <tr>...
 				var tr;
@@ -698,6 +738,16 @@ try {
 						$(tds[j]).html(quantity);
 					}
 				}
+				
+				footersNeedCalculation[tabToFill] = false;
+			},
+			
+			fillAllFooters: function() {
+				for (var tabToFill in footersNeedCalculation) {
+					if (footersNeedCalculation[tabToFill] == true) {
+						sfpDashboard.fillFooter(tabToFill);	
+					}
+				}
 			},
 			
 			//Converts days into the year into a text string (i.e. 33 into Feb 2)
@@ -728,6 +778,11 @@ try {
 					$("div.questionList ul").css("width","100%");	
 				});
 				
+			},
+			
+			//get tabs that need footer recalcs
+			getFootersNeedCalc: function() {
+				return footersNeedCalculation;	
 			}
 		}
 	}();
@@ -785,6 +840,10 @@ try {
 	
 	//Initial table scroll synchronization and other stuff that needs doin'
 	$(".mainTableArea").scroll(sfpDashboard.syncTableScroll);
+	
+	//Ensures all rows (initially) are considered for alt class/footer calculation
+	$(".mainTableArea table tbody tr, .leftTableArea table tbody tr").attr("data-include","true");
+	
 	sfpDashboard.assignAltClasses();
 	sfpDashboard.activateQuestionList();
 	sfpDashboard.fillFooter();
@@ -833,7 +892,7 @@ try {
 		sfpDashboard.addFilter(sfpDashboard.getActiveTab());
 	});
 	
-	//activate Remove link -- probably can be deleted since there isn't an initial one
+	//activate Remove link
 	$("ul.filters li.filterAdd span.remove").click(function() {
 		sfpDashboard.removeFilter(sfpDashboard.getActiveTab());
 		sfpDashboard.applyFilters(sfpDashboard.getActiveTab());
@@ -859,9 +918,14 @@ try {
 		var clickedTab = $(this).attr("id").replace("tabPicker","");
 		sfpDashboard.setActiveTab(clickedTab);
 		sfpDashboard.assignAltClasses();
-		sfpDashboard.fillFooter();
+		var whichFooters = sfpDashboard.getFootersNeedCalc();
+		if (whichFooters[clickedTab] == true) sfpDashboard.fillFooter();
 		sfpDashboard.syncCellSize();
 		sfpDashboard.recalcLayout();
+	});
+	
+	sfpDashboard.addPeriodicTask("calculateFooters",function() {
+		sfpDashboard.fillAllFooters();
 	});
 	
 	//recalculate layout on window resize
