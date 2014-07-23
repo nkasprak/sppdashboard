@@ -12,11 +12,19 @@
 		padding:0px;
 		height:100%;
 	}
+	
+	input[type="text"] {
+		font-family:"Source Code Pro",Arial,sans-serif;	
+		margin:0px;
+		border:0px;
+		font-size:11px;
+	}
+	
 	.wrapper {
-		width:95%;
+		position:absolute;
+		width:98%;
 		height:100%;
-		margin-left:auto;
-		margin-right:auto;	
+		left:1%;
 	}
 	
 	div.clearFix {
@@ -36,7 +44,7 @@
 		box-sizing:border-box;	
 		height:100%;
 		width:100%;
-		padding-right:40px;
+		/*padding-right:40px;*/
 		padding-bottom:0px;
 	}
 	
@@ -136,9 +144,9 @@
 					echo "<tr data-state=\"" . $name . "\"><td>".$name."</td>";
 					foreach ($columnsArr as $column) {
 						$key = $name . "_" . $column["id"];
-						echo "<td class = \"actual\" data-id=\"" . $column["id"] . "\">" . $dataArr[$key]["sort_data"] . "</td>";	
-						echo "<td class = \"display\" data-id=\"" . $column["id"] . "\">" . $dataArr[$key]["display_data"] . "</td>";
-						echo "<td class = \"override\" data-id=\"" . $column["id"] . "\">&nbsp;</td>";	
+						echo "<td class = \"actual\" data-id=\"" . $column["id"] . "\"><input type=\"text\" id=\"input_" .$column["id"]."\" value=\"". addcslashes($dataArr[$key]["sort_data"],'"') . "\"/></td>";	
+						echo "<td class = \"display\" data-id=\"" . $column["id"] . "\"><input type=\"text\" id=\"input_" .$column["id"]."\" value=\"". addcslashes($dataArr[$key]["display_data"],'"') . "\"/></td>";		
+						echo "<td class = \"override\" data-id=\"" . $column["id"] . "\"><input type=\"text\" id=\"input_" .$column["id"]."\" value=\"\"/></td>";	
 					}
 					echo "</tr>";
 				}?>
