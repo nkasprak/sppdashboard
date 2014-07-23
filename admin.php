@@ -124,12 +124,17 @@
                 <?php echo "<tr><th>State</th>";
                  foreach ($columnsArr as $column) {
 					
-					echo "<th class=\"title\" colspan=\"3\" data-id=\"" . $column["id"] . "\">" . $column["shortName"] . "</th>";
+					echo "<th class=\"title\" colspan=\"3\" ";
+					foreach ($column as $attrName=>$attr) {
+						if (!in_array($attrName,array("shortName","longName","Order")) && !empty($attr)) {
+							echo "data-" . $attrName . "=\"" . $attr . "\" ";
+						}
+					} 
+					echo ">" . $column["shortName"] . "</th>";
 					
 				}
 				echo "</tr><tr><th>&nbsp;</th>";
 				 foreach ($columnsArr as $column) {
-				
 					echo "<th class = \"actual\" data-id=\"" . $column["id"] . "\">Actual</th>";
 					echo "<th class = \"display\" data-id=\"" . $column["id"] . "\">Display</th>";
 					echo "<th class = \"override\" data-id=\"" . $column["id"] . "\">Override</th>";
@@ -145,8 +150,8 @@
 					foreach ($columnsArr as $column) {
 						$key = $name . "_" . $column["id"];
 						echo "<td class = \"actual\" data-id=\"" . $column["id"] . "\"><input type=\"text\" id=\"input_" .$column["id"]."\" value=\"". addcslashes($dataArr[$key]["sort_data"],'"') . "\"/></td>";	
-						echo "<td class = \"display\" data-id=\"" . $column["id"] . "\"><input type=\"text\" id=\"input_" .$column["id"]."\" value=\"". addcslashes($dataArr[$key]["display_data"],'"') . "\"/></td>";		
-						echo "<td class = \"override\" data-id=\"" . $column["id"] . "\"><input type=\"text\" id=\"input_" .$column["id"]."\" value=\"\"/></td>";	
+						echo "<td class = \"display\" data-id=\"" . $column["id"] . "\"></td>";		
+						echo "<td class = \"override\" data-id=\"" . $column["id"] . "\"><input type=\"text\" id=\"input_" .$column["id"]."\" value=\"". addcslashes($dataArr[$key]["override_data"],'"') . "\"/></td>";	
 					}
 					echo "</tr>";
 				}?>

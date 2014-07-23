@@ -106,7 +106,7 @@ try {
 		
 		/*Returns the column number of a particular column id. Used here and there.*/
 		returnColIndex = function(col_id) {
-			var tabOfCol = getColumnDataAttr(col_id,"tabgroup");
+			var tabOfCol = getColumnDataAttr(col_id,"tabAssoc");
 			var tds = $($("#tabBodies .tab" + tabOfCol + " .mainTableArea table tbody tr")[0]).children("td");
 			for (var i = 0;i<tds.length;i++) {
 				if ($(tds[i]).hasClass(col_id)) return i;	
@@ -385,7 +385,7 @@ try {
 					optionsString += '<option value="' + cols[i] + '">' + sfpDashboard.getColumnShortName(cols[i]) + "</option>";
 					if (i>0) {
 						/*Add a "---" disabled break to separate tab groups*/
-						if (getColumnDataAttr(cols[i],"tabgroup") != getColumnDataAttr(cols[i-1],"tabgroup")) optionsString += "<option value='0' disabled>---</option>";
+						if (getColumnDataAttr(cols[i],"tabAssoc") != getColumnDataAttr(cols[i-1],"tabAssoc")) optionsString += "<option value='0' disabled>---</option>";
 					}
 				}
 				
@@ -635,7 +635,7 @@ try {
 				} else {
 					
 					//var tab = sfpDashboard.getActiveTab();
-					var tab = getColumnDataAttr(col_id,"tabgroup");
+					var tab = getColumnDataAttr(col_id,"tabAssoc");
 					
 					//Otherwise, get all the visible cells of the relevant column
 					var tds = $("#tabBodies .tab" + tab + " .mainTableArea table tbody tr" + '[data-include="true"]' + " td." + col_id);
@@ -649,12 +649,11 @@ try {
 						} else {
 							val = $(tds[i]).html()*1;
 						}
-						if (val != "") vArray.push(val);
+						if (val != "" && !isNaN(val)) vArray.push(val);
 					}
 					
 					//sort the value array (so we can easily find the median)
 					vArray.sort();
-					
 					
 					//If there's no data to do anything with, shut it down
 					if (vArray.length == 0) return "&nbsp;";
@@ -726,13 +725,14 @@ try {
 						quantity = sfpDashboard.calcQuantity(col_id,mode);
 						
 						//prettify the result
-						if (getColumnDataAttr(col_id,"roundto") && !isNaN(quantity)) {
-							roundMultiplier = Math.pow(10,getColumnDataAttr(col_id,"roundto"));
-							quantity = Math.round(quantity*roundMultiplier)/roundMultiplier;
+						var attrs = {
+							roundto: getColumnDataAttr(col_id,"roundto"),
+							mode: getColumnDataAttr(col_id,"mode"),
+							prepend: getColumnDataAttr(col_id,"prepend"),
+							append: getColumnDataAttr(col_id,"append")
 						}
-						if (getColumnDataAttr(col_id,"mode") == "date" && !isNaN(quantity)) quantity = sfpDashboard.numberToDate(quantity);	
-						if (getColumnDataAttr(col_id,"prepend")) quantity = getColumnDataAttr(col_id,"prepend") + quantity;	
-						if (getColumnDataAttr(col_id,"append")) quantity = quantity + getColumnDataAttr(col_id,"append");
+						
+						quantity = sfpdashboard_shared_functions.formatData(attrs,quantity);
 						
 						//write it to the table
 						$(tds[j]).html(quantity);
@@ -748,15 +748,6 @@ try {
 						sfpDashboard.fillFooter(tabToFill);	
 					}
 				}
-			},
-			
-			//Converts days into the year into a text string (i.e. 33 into Feb 2)
-			numberToDate: function(days) {
-				var months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-				var date = new Date(days*86400000);
-				var month = date.getMonth();
-				var day = date.getDate();
-				return months[month] + " " + day;
 			},
 			
 			//Slides the table of contents out of the way

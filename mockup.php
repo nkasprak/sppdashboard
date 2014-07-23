@@ -24,6 +24,7 @@
 
 <script type="text/javascript" src="jquery-1.10.2.min.js"></script>
 <script type="text/javascript" src="jquery.tablesorter.min.js"></script>
+<script type="text/javascript" src="shared.js"></script>
 <script type="text/javascript" src="dashboard.js"></script>
 
 <?php include("dashboard.php"); //Pulls data from database and organizes it into associative arrays ?>
@@ -126,11 +127,12 @@
 										the columns with jQuery*/
                                         foreach ($columnsArr as $id=>$column) {
 											if ($column['tabAssoc'] == $tabIndex) {
-												$tdAttrString = '<td data-mode="'. $column["mode"] .'"';
-												$tdAttrString .= ' data-tabGroup="' . $column['tabAssoc'] . '"';
-												$tdAttrString .= isset($column["roundTo"]) ? (' data-roundTo="' . $column["roundTo"] . '"') : ''; 
-												$tdAttrString .= isset($column["prepend"]) ? (' data-prepend="' . $column["prepend"] . '"') : '';
-												$tdAttrString .= isset($column["append"]) ? (' data-append="' . $column["append"] . '"') : '';
+												$tdAttrString = '<td ';
+												foreach ($column as $attrName=>$attr) {
+													if (!in_array($attrName,array("shortName","longName","Order")) && (!empty($attr) || $attr=="0")) {
+														$tdAttrString .= "data-" . $attrName . "=\"" . $attr . "\" ";
+													}
+												} 
 												$tdAttrString .= ' class="'.$column["id"].'">'.$column['longName']."</td>\n";
 												echo $tdAttrString;
 											}
@@ -186,7 +188,7 @@
 											/*If it's a date, it'll be stored as days into the year, so convert that
 											to displayable data and store the numeric data in the (hidden) sortdata
 											<span>*/
-											if ($column["mode"] == "date") {
+											if ($column["mode"] == "date" && !empty($data["sort_data"])) {
 												$timestamp = ($data["sort_data"])*86400;
 												$theDate = date("M j",$timestamp);
 												$data["display_data"] = $theDate;
