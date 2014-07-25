@@ -5,6 +5,8 @@
 <link href='http://fonts.googleapis.com/css?family=Source+Sans+Pro:600,700,600italic,700italic' rel='stylesheet' type='text/css'>
 <link href='http://fonts.googleapis.com/css?family=Source+Code+Pro' rel='stylesheet' type='text/css'>
 <script type="text/javascript" src="jquery-1.10.2.min.js"></script>
+<script src="shared.js"></script>
+<script src="admin.js"></script>
 <style>
 	body {
 		font-family:"Source Sans Pro",Arial,sans-serif;	
@@ -146,12 +148,12 @@
                 
                 <?php 
 				foreach ($statesArr as $name=>$state) {
-					echo "<tr data-state=\"" . $name . "\"><td>".$name."</td>";
+					echo "<tr class='state' data-state=\"" . $name . "\"><td>".$name."</td>";
 					foreach ($columnsArr as $column) {
 						$key = $name . "_" . $column["id"];
-						echo "<td class = \"actual\" data-id=\"" . $column["id"] . "\"><input type=\"text\" id=\"input_" .$column["id"]."\" value=\"". addcslashes($dataArr[$key]["sort_data"],'"') . "\"/></td>";	
+						echo "<td class = \"actual\" data-id=\"" . $column["id"] . "\"><input type=\"text\" id=\"input_actual_" .$column["id"]."\" value=\"". addcslashes($dataArr[$key]["sort_data"],'"') . "\"/></td>";	
 						echo "<td class = \"display\" data-id=\"" . $column["id"] . "\"></td>";		
-						echo "<td class = \"override\" data-id=\"" . $column["id"] . "\"><input type=\"text\" id=\"input_" .$column["id"]."\" value=\"". addcslashes($dataArr[$key]["override_data"],'"') . "\"/></td>";	
+						echo "<td class = \"override\" data-id=\"" . $column["id"] . "\"><input type=\"text\" id=\"input_override_" .$column["id"]."\" value=\"". addcslashes($dataArr[$key]["override_data"],'"') . "\"/></td>";	
 					}
 					echo "</tr>";
 				}?>
