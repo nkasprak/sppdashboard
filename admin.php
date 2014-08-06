@@ -2,8 +2,8 @@
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <title>SFP Dashboard Wireframe Admin</title>
-<link href='http://fonts.googleapis.com/css?family=Source+Sans+Pro:600,700,600italic,700italic' rel='stylesheet' type='text/css'>
-<link href='http://fonts.googleapis.com/css?family=Source+Code+Pro' rel='stylesheet' type='text/css'>
+<!--<link href='http://fonts.googleapis.com/css?family=Source+Sans+Pro:600,700,600italic,700italic' rel='stylesheet' type='text/css'>
+<link href='http://fonts.googleapis.com/css?family=Source+Code+Pro' rel='stylesheet' type='text/css'>-->
 <script type="text/javascript" src="jquery-1.10.2.min.js"></script>
 <script src="shared.js"></script>
 <script src="admin.js"></script>
@@ -170,9 +170,11 @@
 					echo "<option selected value=\"" . $column["id"] . "\">" . $column["shortName"] . "</option>";
 				} ?>
             </select>
+            <button id="saveData">Save Data</button>
+            <div id="responseFromServer">
+            
+            </div>
             </div>
         </div>
-        
-        
 	</div>
 </body>
