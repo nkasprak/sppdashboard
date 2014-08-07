@@ -1,8 +1,5 @@
 <?php include("config.php"); 
 
-/*Makes the date conversion consistent between testing and production*/
-date_default_timezone_set('America/New_York');
-
 $mysqli = new mysqli(DB_SERVER,DB_USER,DB_PASSWORD,DB_DATABASE);
 $mysqli->set_charset("utf8");
 
