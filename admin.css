@@ -1,0 +1,100 @@
+@charset "utf-8";
+/* CSS Document */
+
+body {
+	font-family:Arial,sans-serif;	
+	margin:0px;
+	padding:0px;
+	height:100%;
+}
+
+input[type="text"] {
+	font-family:Arial,sans-serif;	
+	margin:0px;
+	border:0px;
+	font-size:11px;
+}
+
+.wrapper {
+	position:absolute;
+	width:98%;
+	height:100%;
+	left:1%;
+}
+
+div.clearFix {
+	clear:both;	
+}
+
+div#tabPicker .tab {
+	float:left;	
+	margin:5px;
+	
+}
+
+.tabBody {
+	top:0px;
+	position:absolute;
+	padding-top:100px;
+	box-sizing:border-box;	
+	height:100%;
+	width:100%;
+	/*padding-right:40px;*/
+	padding-bottom:0px;
+}
+
+
+div#dataTab div#columnPicker {
+	width:250px;
+	position:absolute;
+	top:100px;
+}
+
+div#dataTab div#columnPicker select {
+	height:600px;	
+}
+
+#dataTableScroll {
+	position:relative;
+	width:100%;
+	overflow:scroll;
+	height:100%;;
+}
+
+#dataTableOuterWrap {
+	box-sizing:border-box;
+	position:relative;
+	padding-left:250px;
+	width:100%;
+	height:100%;
+}
+
+#dataTableWrapper {
+	position:relative;
+}
+
+#dataTable {
+	border:1px solid #000;
+	border-spacing:0px;
+	border-collapse:collapse;
+	font-family:monospace;
+	font-size:12px;
+		
+}
+
+#dataTable td, #dataTable th {
+	margin:0px;
+	border:1px solid #aaa;
+}
+
+#dataTable td.actual, #dataTable th.actual, #dataTable th.title {
+	border-left:2px solid #888;	
+}
+
+#dataTable td {
+	white-space:nowrap;	
+}
+
+#structureTab {
+	display:none;	
+}
