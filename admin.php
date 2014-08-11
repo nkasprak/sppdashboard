@@ -14,15 +14,10 @@
 	<div class="wrapper">
 	<?php include("dashboard.php"); ?>
 		<h2>Dashboard Admin Area</h2>
-		<div id="tabPicker">
-        	<div class="tab" id="pickData">Data</div>
-            <div class="tab" id="pickStructure">Structure</div>
-        </div>
-		<div class="clearFix"></div>
        	<div id="dataTab" class="tabBody">
-        	<div id="dataTableOuterWrap">
-            	<div id="dataTableScroll">
-                    <div id="dataTableWrapper">
+        	<div id="dataTableOuterWrap" class="tableOuterWrap">
+            	<div id="dataTableScroll" class="tableScroll">
+                    <div id="dataTableWrapper" class="tableWrapper">
                         <table id="dataTable">
                             <thead>
                             	<tr><th>State</th>
@@ -42,7 +37,6 @@
 								</tr>                            
 							</thead>
                             <tbody>
-                            
                             <?php 
                             foreach ($statesArr as $name=>$state) : ?>
                                <tr class="state" data-state="<?php echo $name; ?>"><td><?php echo $name;?></td>
@@ -73,37 +67,63 @@
             </div><!--end columnPicker-->
         </div><!--end dataTab-->
         <div id="structureTab" class="tabBody">
-        	<div id="structureTableWrapper">
-            	<table id="structureTable">
-                	<thead>
-						<tr>
-                        	<td>ID</td>
-                            <td>Long Name</td>
-                            <td>Short Name</td>
-                            <td>Data Mode</td>
-                            <td>Round To</td>
-                            <td>Prepend</td>
-                            <td>Append</td>
-                            <td>Tab</td>
-                        </tr>
-                	</thead>
-                    <tbody>
-						<?php foreach ($columnsArr as $column): ?>
-                        <tr>	
-                            <td> <?php echo $column["id"]; ?></td>
-                            <td> <?php echo $column["longName"]; ?></td>
-                            <td> <?php echo $column["shortName"]; ?></td>
-                            <td> <?php echo $column["mode"]; ?></td>
-                            <td> <?php echo $column["roundTo"]; ?></td>
-                            <td> <?php echo $column["prepend"]; ?></td>
-                            <td> <?php echo $column["append"]; ?></td>
-                            <td> <?php echo $column["tabAssoc"]; ?></td>
-                        </tr>
-                        <?php endforeach; ?>
-                    </tbody>
+        	<div id="structureTableOuterWrap" class="tableOuterWrap">
+            	<div class="tableScroll">
+                    <div id="structureTableWrapper" class="tableWrapper">
+                        <table id="structureTable">
+                            <thead>
+                                <tr>
+                                	<th></th>
+                                    <th>ID</th>
+                                    <th>Long Name</th>
+                                    <th>Short Name</th>
+                                    <th>Data Mode</th>
+                                    <th>Round To</th>
+                                    <th>Prepend</th>
+                                    <th>Append</th>
+                                    <th>Tab</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                            	<?php function dataModeSelector($dataMode) { 
+									?><select class="dataModeSelector">
+                                    		<option value="text" <?php echo ($dataMode=="text") ? "selected" : "" ?>>Text</option>
+                                            <option value="numeric" <?php echo ($dataMode=="numeric") ? "selected" : "" ?>>Numeric</option>
+                                            <option value="date" <?php echo ($dataMode=="date") ? "selected" : "" ?>>Date</option>
+                                   		</select>
+								<?php }
+								function htmlToTextLineBreaks($html) {
+									$theRegex = "/(\s)*?<br *?\/*? *?>(\s)*?/";
+									$lineBreak = "\n";
+									return preg_replace($theRegex,$lineBreak,$html);
+								}
+								?>
+                                <?php foreach ($columnsArr as $column): ?>
+                                <tr>
+                                	<td><button class="addDataColumn">Insert Row Above</button></td>
+                                    <td><input type="text" value="<?php echo $column["id"]; ?>" /></td>
+                                    <td><textarea><?php echo htmlToTextLineBreaks($column["longName"]); ?></textarea></td>
+                                    <td><input type="text" value="<?php echo $column["shortName"]; ?>" /></td>
+                                    <td><?php dataModeSelector($column["mode"]); ?></td>
+                                    <td><input <?php echo ($column["mode"]=="numeric" ? "" : "disabled"); ?> type="text" size="2" value="<?php echo $column["roundTo"]; ?>"</td>
+                                    <td><input type="text" size="2" value="<?php echo $column["prepend"]; ?>"</td>
+                                    <td><input type="text" size="2" value="<?php echo $column["append"]; ?>"</td>
+                                    <td><input type="text" size="2" value="<?php echo $column["tabAssoc"]; ?>"</td>
+                                    <td><div class="upArrow">Up</div><div class="downArrow">Down</div></td>
+                                </tr>
+                                <?php endforeach; ?>
+                            </tbody>
+                            
+                        </table>
+                    </div><!--end structureTableWrapper-->
                     
-                </table>
-            </div>
+                
+            	</div><!--end tableScroll-->
+        	</div><!--end structureOuterWrap-->      
         </div><!--end structureTab-->
+        <div id="tabPicker">
+        	<div class="tab" id="pickData">Data</div>
+            <div class="tab" id="pickStructure">Structure</div>
+        </div>
 	</div><!--end wrapper-->
 </body>

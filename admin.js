@@ -79,6 +79,46 @@ var sfp_admin = function() {
 				var selector = "#dataTable th[data-id='"+col_id+"'], #dataTable td[data-id='"+col_id+"']";
 				$(selector).show();
 			});
+		},
+		switchTab: function(pickerID) {
+			$(".tabBody").hide();
+			var map = {"pickData":"dataTab","pickStructure":"structureTab"};
+			$("#" + map[pickerID]).show();
+		},
+		moveRow: function(direction,theRow) {
+			if (direction == "up") {
+				var priorRow = $(theRow).prev("tr");
+				if (priorRow.length > 0) {
+					$(theRow).detach();
+					$(theRow).insertBefore(priorRow);
+				}
+			} else if (direction == "down") {
+				var nextRow = $(theRow).next("tr");
+				if (nextRow.length > 0) {
+					$(theRow).detach();
+					$(theRow).insertAfter(nextRow);
+				}
+			}
+		},
+		addRowClickFunction: function() {
+			var row = $(this).parents("tr")[0];
+			sfp_admin.addNewRow(row);
+		},
+		addNewRow: function(beforeRow) {
+			var html = $(beforeRow).html();
+			var newRow = $("<tr>" + html + "</tr>");
+			$(newRow).find("input").val("");
+			$(newRow).find("textArea").val(""); 
+			$(newRow).find("button.addDataColumn").click(sfp_admin.addRowClickFunction);
+			$(newRow).find("div.upArrow").click(function() {
+				var row = $(this).parents("tr")[0];
+				sfp_admin.moveRow("up",row);
+			});
+			$(newRow).find("div.downArrow").click(function() {
+				var row = $(this).parents("tr")[0];
+				sfp_admin.moveRow("down",row);
+			});
+			$(newRow).insertBefore(beforeRow);                 	
 		}
 	}
 }();
@@ -114,8 +154,29 @@ $(document).ready(function() {
 		});
 	});
 	
+	$("#tabPicker .tab").click(function() {
+		sfp_admin.switchTab(this.id);
+	});
+	
 	$("#columnPicker select").change(function() {
 		var selectedColumns = $(this).val();
 		sfp_admin.changeColumns(selectedColumns);
 	});
+	
+	$("div.upArrow").click(function() {
+		var row = $(this).parents("tr")[0];
+		sfp_admin.moveRow("up",row);
+	});
+	
+	$("div.downArrow").click(function() {
+		var row = $(this).parents("tr")[0];
+		sfp_admin.moveRow("down",row);
+	});
+	
+	$("select.dataModeSelector").click(function() {
+		var row = $(this).parents("tr")[0];
+	});
+	
+	$("button.addDataColumn").click(sfp_admin.addRowClickFunction);
+	
 });
