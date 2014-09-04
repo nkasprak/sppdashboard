@@ -5,16 +5,25 @@ var sfp_admin = function() {
 		var th = $("#dataTable th.title[data-id=\"" + col_id + "\"]");
 		return th.attr("data-" + attr);
 	};
+	var newRowCounter = 0;
 	var dataChanges = [];
-	Object.defineProperty(dataChanges,"has",{enumerable:false,value:function(toCheck) {
-		this.forEach(function (el) {
-			if (el.toString()==toCheck.toString()) return true;
-		});
-		return false;
-	}});
+	var structureChanges = [];
+	var makeCheckable = function(arr) {
+		Object.defineProperty(arr,"has",{enumerable:false,value:function(toCheck) {
+			this.forEach(function (el) {
+				if (el.toString()==toCheck.toString()) return true;
+			});
+			return false;
+		}});
+	};
+	
+	makeCheckable(dataChanges);
+	makeCheckable(structureChanges);
 	var addToListOfChanges = function(state,col_id) {
-		console.log([state,col_id]);
 		if (!dataChanges.has([state,col_id])) dataChanges.push([state,col_id]);
+	};
+	var addToListOfStructureChanges = function(col_id,attr) {
+		if (!structureChanges.has([col_id,attr])) structureChanges.push([col_id,attr]);
 	};
 	return {
 		writeDataDisplay: function() {
@@ -36,9 +45,17 @@ var sfp_admin = function() {
 		getListOfChanges: function() {
 			return dataChanges;
 		},
+		getListOfStructureChanges: function() {
+			return structureChanges;
+		},
 		clearListOfChanges: function() {
 			while(dataChanges.length > 0) {
 				dataChanges.pop();	
+			}
+		},
+		clearListOfStructureChanges: function() {
+			while (structureChanges.length > 0) {
+				structureChanges.pop();	
 			}
 		},
 		writeDisplayOfColumn: function(col_id) {
@@ -118,19 +135,50 @@ var sfp_admin = function() {
 				var row = $(this).parents("tr")[0];
 				sfp_admin.moveRow("down",row);
 			});
-			$(newRow).insertBefore(beforeRow);                 	
-		}
+			$(newRow).find("input[data-role='colID']").first().attr("data-orgcolid","newRow" + newRowCounter);
+			$(newRow).insertBefore(beforeRow);
+			newRowCounter++;                 	
+		},
+		modeSelected: function(mode,row) {
+			var roundInput = $(row).find("input[data-role='roundTo']").first();
+			console.log(roundInput);
+			if (mode != "numeric") {
+				roundInput.attr("data-oldData",roundInput.val());
+				roundInput.val("");
+				roundInput.attr("disabled","disabled");
+			} else {
+				if (roundInput.is("[data-oldData]")) roundInput.val(roundInput.attr("data-oldData"));
+				roundInput.removeAttr("disabled data-oldData");	
+			}
+		},
+		storeOriginalColIDs: function() {
+			var colIdInputs = $("#structureTable input[data-role='colID']");
+			colIdInputs.each(function() {
+				$(this).attr("data-orgColID",$(this).val());
+			});
+		},
+		structureChange: function(inputObj) {
+			var col_id, attr, row;
+			row = inputObj.parents("tr").eq(0);
+			col_id = row.find("input[data-role='colID']").first().val();
+			attr = inputObj.attr("data-role");
+		},
 	}
 }();
 
 $(document).ready(function() {
 	
 	sfp_admin.writeDataDisplay();
+	sfp_admin.storeOriginalColIDs();
 	
 	$("#dataTable input[type='text']").change(function() {
 		var state = $(this).parent().parent().attr("data-state");
 		var dataID = $(this).parent().attr("data-id");
 		sfp_admin.writeData(state,dataID);
+	});
+	
+	$("#structureTable :input").change(function() {
+		sfp_admin.structureChange($(this));
 	});
 	
 	$("#saveData").click(function() {
@@ -140,6 +188,7 @@ $(document).ready(function() {
 			if (str=="") return null;
 			else return str;
 		};
+		
 		dataChanges.forEach(function(change) {
 			postData.push({
 				address: change,
@@ -173,10 +222,11 @@ $(document).ready(function() {
 		sfp_admin.moveRow("down",row);
 	});
 	
-	$("select.dataModeSelector").click(function() {
+	$("select.dataModeSelector").change(function() {
 		var row = $(this).parents("tr")[0];
+		sfp_admin.modeSelected($(this).val(),row);
 	});
 	
-	$("button.addDataColumn").click(sfp_admin.addRowClickFunction);
+	$("button[data-role='addDataColumn']").click(sfp_admin.addRowClickFunction);
 	
 });

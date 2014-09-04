@@ -100,15 +100,15 @@
 								?>
                                 <?php foreach ($columnsArr as $column): ?>
                                 <tr>
-                                	<td><button class="addDataColumn">Insert Row Above</button></td>
-                                    <td><input type="text" value="<?php echo $column["id"]; ?>" /></td>
-                                    <td><textarea><?php echo htmlToTextLineBreaks($column["longName"]); ?></textarea></td>
-                                    <td><input type="text" value="<?php echo $column["shortName"]; ?>" /></td>
+                                	<td><button data-role="addDataColumn">Insert Row Above</button></td>
+                                    <td><input data-role="colID" type="text" value="<?php echo $column["id"]; ?>" /></td>
+                                    <td><textarea data-role="longName"><?php echo htmlToTextLineBreaks($column["longName"]); ?></textarea></td>
+                                    <td><input data-role="shortName" type="text" value="<?php echo $column["shortName"]; ?>" /></td>
                                     <td><?php dataModeSelector($column["mode"]); ?></td>
-                                    <td><input <?php echo ($column["mode"]=="numeric" ? "" : "disabled"); ?> type="text" size="2" value="<?php echo $column["roundTo"]; ?>"</td>
-                                    <td><input type="text" size="2" value="<?php echo $column["prepend"]; ?>"</td>
-                                    <td><input type="text" size="2" value="<?php echo $column["append"]; ?>"</td>
-                                    <td><input type="text" size="2" value="<?php echo $column["tabAssoc"]; ?>"</td>
+                                    <td><input data-role="roundTo" <?php echo ($column["mode"]=="numeric" ? "" : "disabled"); ?> type="text" size="2" value="<?php echo $column["roundTo"]; ?>"></td>
+                                    <td><input data-role="prepend" type="text" size="2" value="<?php echo $column["prepend"]; ?>"></td>
+                                    <td><input data-role="append" type="text" size="2" value="<?php echo $column["append"]; ?>"></td>
+                                    <td><input data-role="tabAssoc" type="text" size="2" value="<?php echo $column["tabAssoc"]; ?>"></td>
                                     <td><div class="upArrow">Up</div><div class="downArrow">Down</div></td>
                                 </tr>
                                 <?php endforeach; ?>
