@@ -4,7 +4,7 @@
 <title>SFP Dashboard Wireframe Admin</title>
 <!--<link href='http://fonts.googleapis.com/css?family=Source+Sans+Pro:600,700,600italic,700italic' rel='stylesheet' type='text/css'>
 <link href='http://fonts.googleapis.com/css?family=Source+Code+Pro' rel='stylesheet' type='text/css'>-->
-<script type="text/javascript" src="jquery-1.10.2.min.js"></script>
+<script type="text/javascript" src="jquery-1.11.1.min.js"></script>
 <script src="shared.js"></script>
 <script src="admin.js"></script>
 <link rel="stylesheet" href="admin.css" tyle="text/css" />
@@ -86,7 +86,7 @@
                             </thead>
                             <tbody>
                             	<?php function dataModeSelector($dataMode) { 
-									?><select class="dataModeSelector">
+									?><select class="dataModeSelector" data-role="dataModeSelector">
                                     		<option value="text" <?php echo ($dataMode=="text") ? "selected" : "" ?>>Text</option>
                                             <option value="numeric" <?php echo ($dataMode=="numeric") ? "selected" : "" ?>>Numeric</option>
                                             <option value="date" <?php echo ($dataMode=="date") ? "selected" : "" ?>>Date</option>
@@ -109,17 +109,24 @@
                                     <td><input data-role="prepend" type="text" size="2" value="<?php echo $column["prepend"]; ?>"></td>
                                     <td><input data-role="append" type="text" size="2" value="<?php echo $column["append"]; ?>"></td>
                                     <td><input data-role="tabAssoc" type="text" size="2" value="<?php echo $column["tabAssoc"]; ?>"></td>
-                                    <td><div class="upArrow">Up</div><div class="downArrow">Down</div></td>
+                                    <td><div class="upArrow">Up</div><div class="downArrow">Down</div><div data-function="delete" class="deleteButton">Delete</div></td>
                                 </tr>
                                 <?php endforeach; ?>
                             </tbody>
                             
                         </table>
                     </div><!--end structureTableWrapper-->
-                    
+                
                 
             	</div><!--end tableScroll-->
-        	</div><!--end structureOuterWrap-->      
+                
+        	</div><!--end structureOuterWrap-->
+            <div id="structureLeft">
+                <button id="saveStructureData">Save Data</button>
+                <div id="responseFromServerStructure">
+                
+                </div><!--end responseFromServer-->    
+            </div><!--end structureLeft-->  
         </div><!--end structureTab-->
         <div id="tabPicker">
         	<div class="tab" id="pickData">Data</div>

@@ -8,15 +8,21 @@ var sfp_admin = function() {
 	var newRowCounter = 0;
 	var dataChanges = [];
 	var structureChanges = [];
+	var structureAdds = [];
+	var structureDels = [];
 	var makeCheckable = function(arr) {
 		Object.defineProperty(arr,"has",{enumerable:false,value:function(toCheck) {
-			this.forEach(function (el) {
-				if (el.toString()==toCheck.toString()) return true;
-			});
-			return false;
+			var toReturn = false;
+			var forEachFunction = function(el) {
+				if (el.toString()==toCheck.toString()) {
+					toReturn = true;
+				}
+			};
+			this.forEach(forEachFunction);
+			return toReturn;
 		}});
 	};
-	
+	var originalValues = {};
 	makeCheckable(dataChanges);
 	makeCheckable(structureChanges);
 	var addToListOfChanges = function(state,col_id) {
@@ -125,23 +131,37 @@ var sfp_admin = function() {
 			var html = $(beforeRow).html();
 			var newRow = $("<tr>" + html + "</tr>");
 			$(newRow).find("input").val("");
-			$(newRow).find("textArea").val(""); 
-			$(newRow).find("button.addDataColumn").click(sfp_admin.addRowClickFunction);
-			$(newRow).find("div.upArrow").click(function() {
-				var row = $(this).parents("tr")[0];
-				sfp_admin.moveRow("up",row);
+			$(newRow).find("textArea").val("");
+			var colID = "newRow" + newRowCounter; 
+			var colIDInput = $(newRow).find("input[data-role='colID']").first();
+			colIDInput.attr("data-orgcolid",colID).val(colID);
+			colIDInput.on("change",function() {
+				sfp_admin.duplicateHandler($(this),colID);
 			});
-			$(newRow).find("div.downArrow").click(function() {
-				var row = $(this).parents("tr")[0];
-				sfp_admin.moveRow("down",row);
-			});
-			$(newRow).find("input[data-role='colID']").first().attr("data-orgcolid","newRow" + newRowCounter);
 			$(newRow).insertBefore(beforeRow);
+			structureAdds.push("newRow" + newRowCounter);
 			newRowCounter++;                 	
+		},
+		deleteRow: function(theRow) {
+			var col_id = $(theRow).find("input[data-role='colID']").attr("data-orgcolid");
+			$(theRow).addClass("deleted");
+			$(theRow).find(":input").prop("disabled",true);
+			$(theRow).find("div.deleteButton").html("Undelete").attr("data-function","restore");
+			structureDels.push(col_id);
+			console.log(structureDels);
+		},
+		undeleteRow: function(theRow) {
+			var col_id = $(theRow).find("input[data-role='colID']").attr("data-orgcolid");
+			$(theRow).removeClass("deleted");
+			$(theRow).find(":input").removeProp("disabled");
+			$(theRow).find("div.deleteButton").html("Delete").attr("data-function","delete");
+			structureDels = $.grep(structureDels,function(value) {return value!=col_id});
+			var theMode = $(theRow).find("select.dataModeSelector").val();
+			
+			sfp_admin.modeSelected(theMode,theRow);
 		},
 		modeSelected: function(mode,row) {
 			var roundInput = $(row).find("input[data-role='roundTo']").first();
-			console.log(roundInput);
 			if (mode != "numeric") {
 				roundInput.attr("data-oldData",roundInput.val());
 				roundInput.val("");
@@ -151,18 +171,137 @@ var sfp_admin = function() {
 				roundInput.removeAttr("disabled data-oldData");	
 			}
 		},
+		duplicateHandler: function(obj,col_id) {
+			var duplicate = sfp_admin.isDuplicateCheck(obj);
+			if (duplicate) {
+				alert("Error - ID must be unique");
+				obj.val(originalValues[col_id]);
+				return false;
+			} 
+			return true;
+		},
 		storeOriginalColIDs: function() {
 			var colIdInputs = $("#structureTable input[data-role='colID']");
 			colIdInputs.each(function() {
 				$(this).attr("data-orgColID",$(this).val());
 			});
 		},
-		structureChange: function(inputObj) {
-			var col_id, attr, row;
-			row = inputObj.parents("tr").eq(0);
-			col_id = row.find("input[data-role='colID']").first().val();
-			attr = inputObj.attr("data-role");
+		structureFocus: function(inputObj) {
+			var col_id, row;
+			row = inputObj.parents("tr").first();
+			col_id_input = row.find("input[data-role='colID']").first();
+			col_id = row.find("input[data-role='colID']").first().attr("data-orgcolid");
+			originalValues[col_id] = inputObj.val();
 		},
+		structureChange: function(inputObj) {
+			var col_id, attr, row, col_id_input;
+			
+			row = inputObj.parents("tr").first();
+			col_id_input = row.find("input[data-role='colID']").first();
+			col_id = row.find("input[data-role='colID']").first().attr("data-orgcolid");
+			attr = inputObj.attr("data-role");
+			if (attr == "colID") {
+				if (sfp_admin.duplicateHandler(inputObj,col_id) == false) return false;
+			}
+			addToListOfStructureChanges(col_id,attr);
+			
+		},
+		save : function(mode) {
+			var postData;
+			var makeNull = function(str) {
+				if (str=="") return null;
+				else return str;
+			};
+			
+			if (mode == "data") {
+				postData = [];
+				var changes = sfp_admin.getListOfChanges();
+				$.each(changes,function(i,change) {
+					postData.push({
+						address: change,
+						actual: makeNull($("tr[data-state='" + change[0] + "'] input#input_actual_" + change[1]).val()),
+						override: makeNull($("tr[data-state='" + change[0] + "'] input#input_override_" + change[1]).val())
+					});
+				});
+			} else if (mode == "structure") {
+				postData = {};
+				postData.changes = [];
+				postData.additions = [];
+				postData.deletions = [];
+				console.log(structureDels);
+				$.each(structureAdds, function(i, el) {
+					console.log(el);
+					console.log($.inArray(el,structureDels));
+					if ($.inArray(el,structureDels)==-1) {
+						var toPush = {};
+						var row = $("#structureTab table input[data-orgcolid='" + el + "']").parents("tr").first();
+						console.log(row);
+						row.find(":input").each(function(i,elem) {
+							console.log(elem);
+							var value = $(elem).val();
+							if ($(elem).attr("data-role")=="longName") value = value.replace(/\r\n|\r|\n/g,"<br />");
+							toPush[$(elem).attr("data-role")] = value;
+						});
+						toPush.orgcolid = el;
+						postData.additions.push(toPush);
+					}
+				});
+				$.each(structureDels, function(i, el) {
+					if ($.inArray(el,structureAdds)==-1) {
+						postData.deletions.push(el);	
+					}
+				});
+				var changes = sfp_admin.getListOfStructureChanges();
+				$.each(changes,function(i,change) {
+					var row = $("input[data-orgcolid='" + change[0] + "']").parents("tr").first();
+					var value = row.find("[data-role='"+change[1] + "']").val();
+					if (change[1] == "longName") {
+						value = value.replace(/\r\n|\r|\n/g,"<br />");
+					}
+					postData.changes.push({
+						address: change,
+						change: makeNull(value),
+					});
+				});
+			} else {return false;}
+			
+			/*$.post("saveData.php",{data:postData},function(returnData) {
+				$("#responseFromServer").html(returnData);
+				sfp_admin.clearListOfChanges();
+			});*/
+			console.log(postData);
+			
+			
+			
+		},
+		saveData: function() {
+			sfp_admin.save("data");
+		},
+		saveStructure: function() {
+			sfp_admin.save("structure");
+		},
+		deleteFunction: function(row,mode) {
+			if (mode=="delete") {
+				sfp_admin.deleteRow(row);
+			} else if (mode == "restore") {
+				sfp_admin.undeleteRow(row);	
+			} else {
+				console.log("Something ain't right");	
+			}
+		},
+		isDuplicateCheck: function(inputObj) {
+			var id = $(inputObj).val();
+			var row = $(inputObj).parents("tr").first();
+			var isDuplicate = false;
+			$("#structureTable input[data-role='colID']").not("tr.deleted input").each(function(i,el) {
+				
+				//don't check against self
+				if (row.find("input[data-role='colID']").attr("data-orgcolid") != $(el).attr("data-orgcolid")) {
+					if (id == $(el).val()) isDuplicate=true;
+				}
+			});
+			return isDuplicate;
+		}
 	}
 }();
 
@@ -171,62 +310,59 @@ $(document).ready(function() {
 	sfp_admin.writeDataDisplay();
 	sfp_admin.storeOriginalColIDs();
 	
-	$("#dataTable input[type='text']").change(function() {
+	$("#dataTable").on("change", "input[type='text']", function() {
 		var state = $(this).parent().parent().attr("data-state");
 		var dataID = $(this).parent().attr("data-id");
 		sfp_admin.writeData(state,dataID);
 	});
 	
-	$("#structureTable :input").change(function() {
+	//Note that this isn't delegated - new rows are handled differently
+	$("#structureTable :input").on("change",function() {
 		sfp_admin.structureChange($(this));
 	});
 	
-	$("#saveData").click(function() {
-		var dataChanges = sfp_admin.getListOfChanges();
-		var postData = [];
-		var makeNull = function(str) {
-			if (str=="") return null;
-			else return str;
-		};
-		
-		dataChanges.forEach(function(change) {
-			postData.push({
-				address: change,
-				actual: makeNull($("tr[data-state='" + change[0] + "'] input#input_actual_" + change[1]).val()),
-				override: makeNull($("tr[data-state='" + change[0] + "'] input#input_override_" + change[1]).val())
-			});
-		});
-		
-		$.post("saveData.php",{data:postData},function(returnData) {
-			$("#responseFromServer").html(returnData);
-			sfp_admin.clearListOfChanges();
-		});
+	$("#structureTable").on("focus","input[data-role='colID']",function() {
+		sfp_admin.structureFocus($(this));
 	});
 	
-	$("#tabPicker .tab").click(function() {
+	$("#saveData").click(function() {
+		sfp_admin.saveData();
+	});
+	
+	$("#saveStructureData").click(function() {
+		sfp_admin.saveStructure();
+	});
+	
+	$("#tabPicker").on("click",".tab", function() {
 		sfp_admin.switchTab(this.id);
 	});
 	
-	$("#columnPicker select").change(function() {
+	$("#columnPicker").on("change", "select", function() {
 		var selectedColumns = $(this).val();
 		sfp_admin.changeColumns(selectedColumns);
 	});
 	
-	$("div.upArrow").click(function() {
+	$("#structureTable").on("click","div.upArrow", function() {
 		var row = $(this).parents("tr")[0];
 		sfp_admin.moveRow("up",row);
 	});
 	
-	$("div.downArrow").click(function() {
+	$("#structureTable").on("click","div.downArrow",function() {
 		var row = $(this).parents("tr")[0];
 		sfp_admin.moveRow("down",row);
 	});
 	
-	$("select.dataModeSelector").change(function() {
+	$("#structureTable").on("click","div.deleteButton",function() {
+		var row = $(this).parents("tr")[0];
+		var mode = $(this).attr("data-function");
+		sfp_admin.deleteFunction(row,mode);
+	});
+	
+	$("#structureTable").on("change","select.dataModeSelector", function() {
 		var row = $(this).parents("tr")[0];
 		sfp_admin.modeSelected($(this).val(),row);
 	});
 	
-	$("button[data-role='addDataColumn']").click(sfp_admin.addRowClickFunction);
+	$("#structureTable").on("click","button[data-role='addDataColumn']",sfp_admin.addRowClickFunction);
 	
 });

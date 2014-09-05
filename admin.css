@@ -53,10 +53,14 @@ div#tabPicker .tab {
 }
 
 
-div#dataTab div#columnPicker {
+div#dataTab div#columnPicker, div#structureTab div#structureLeft {
 	width:250px;
 	position:absolute;
 	top:0px;
+}
+
+div#structureTab div#structureLeft {
+	width:50px;	
 }
 
 div#dataTab div#columnPicker select {
@@ -76,6 +80,10 @@ div#dataTab div#columnPicker select {
 	padding-left:250px;
 	width:100%;
 	height:100%;
+}
+
+#structureTab .tableOuterWrap {
+	padding-left:50px;	
 }
 
 .tableWrapper {
@@ -113,4 +121,9 @@ textArea {
 
 #structureTab {
 	display:none;	
+}
+
+#structureTab table tr.deleted td {
+	background-color:#aaa;
+	color:#555;	
 }

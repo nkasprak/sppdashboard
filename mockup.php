@@ -22,7 +22,7 @@
 </script>
 <![endif]-->
 
-<script type="text/javascript" src="jquery-1.10.2.min.js"></script>
+<script type="text/javascript" src="jquery-1.11.1.min.js"></script>
 <script type="text/javascript" src="jquery.tablesorter.min.js"></script>
 <script type="text/javascript" src="shared.js"></script>
 <script type="text/javascript" src="dashboard.js"></script>
