@@ -60,7 +60,7 @@ div#dataTab div#columnPicker, div#structureTab div#structureLeft {
 }
 
 div#structureTab div#structureLeft {
-	width:50px;	
+	width:250px;	
 }
 
 div#dataTab div#columnPicker select {
@@ -83,7 +83,7 @@ div#dataTab div#columnPicker select {
 }
 
 #structureTab .tableOuterWrap {
-	padding-left:50px;	
+	padding-left:250px;	
 }
 
 .tableWrapper {

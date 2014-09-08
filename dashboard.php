@@ -4,7 +4,7 @@ $mysqli = new mysqli(DB_SERVER,DB_USER,DB_PASSWORD,DB_DATABASE);
 $mysqli->set_charset("utf8");
 
 $statesQuery = "SELECT * FROM statenames";
-$columnsQuery = "SELECT * FROM columns ORDER BY `Order`";
+$columnsQuery = "SELECT * FROM columns ORDER BY `columnOrder`";
 $dataQuery = "SELECT * FROM data";
 $tabsQuery = "SELECT * FROM tabs";
 
@@ -49,7 +49,7 @@ $highTab = max($tabBounds);
 
 /*Sorts columns by tab first, then order within tab second*/
 uasort($columnsArr, function($a,$b) {
-	if ($a["tabAssoc"] == $b["tabAssoc"]) return $a["Order"] - $b["Order"];
+	if ($a["tabAssoc"] == $b["tabAssoc"]) return $a["columnOrder"] - $b["columnOrder"];
 	else return $a["tabAssoc"] - $b["tabAssoc"];
 });
 

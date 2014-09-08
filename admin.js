@@ -148,7 +148,6 @@ var sfp_admin = function() {
 			$(theRow).find(":input").prop("disabled",true);
 			$(theRow).find("div.deleteButton").html("Undelete").attr("data-function","restore");
 			structureDels.push(col_id);
-			console.log(structureDels);
 		},
 		undeleteRow: function(theRow) {
 			var col_id = $(theRow).find("input[data-role='colID']").attr("data-orgcolid");
@@ -206,38 +205,41 @@ var sfp_admin = function() {
 			addToListOfStructureChanges(col_id,attr);
 			
 		},
+		getStructureOrder: function() {
+			var trs = $("#structureTable tbody tr");
+			var toReturn = [];
+			trs.each(function(i,el) {
+				toReturn.push($(el).find("input[data-role='colID']").attr("data-orgcolid"));
+			});
+			return toReturn;
+		},
 		save : function(mode) {
 			var postData;
 			var makeNull = function(str) {
 				if (str=="") return null;
 				else return str;
 			};
-			
+			postData = {};
+			postData.changes = [];
+			postData.mode = mode;
 			if (mode == "data") {
-				postData = [];
 				var changes = sfp_admin.getListOfChanges();
 				$.each(changes,function(i,change) {
-					postData.push({
+					postData.changes.push({
 						address: change,
 						actual: makeNull($("tr[data-state='" + change[0] + "'] input#input_actual_" + change[1]).val()),
 						override: makeNull($("tr[data-state='" + change[0] + "'] input#input_override_" + change[1]).val())
 					});
 				});
 			} else if (mode == "structure") {
-				postData = {};
-				postData.changes = [];
 				postData.additions = [];
 				postData.deletions = [];
-				console.log(structureDels);
+				postData.order = sfp_admin.getStructureOrder();
 				$.each(structureAdds, function(i, el) {
-					console.log(el);
-					console.log($.inArray(el,structureDels));
 					if ($.inArray(el,structureDels)==-1) {
 						var toPush = {};
 						var row = $("#structureTab table input[data-orgcolid='" + el + "']").parents("tr").first();
-						console.log(row);
 						row.find(":input").each(function(i,elem) {
-							console.log(elem);
 							var value = $(elem).val();
 							if ($(elem).attr("data-role")=="longName") value = value.replace(/\r\n|\r|\n/g,"<br />");
 							toPush[$(elem).attr("data-role")] = value;
@@ -265,11 +267,11 @@ var sfp_admin = function() {
 				});
 			} else {return false;}
 			
-			/*$.post("saveData.php",{data:postData},function(returnData) {
-				$("#responseFromServer").html(returnData);
+			$.post("saveData.php",{data:postData},function(returnData) {
+				$("#responseFromServer" + (mode=="structure" ? "Structure" : "")).html(returnData);
 				sfp_admin.clearListOfChanges();
-			});*/
-			console.log(postData);
+			});
+			//console.log(postData);
 			
 			
 			
@@ -286,7 +288,7 @@ var sfp_admin = function() {
 			} else if (mode == "restore") {
 				sfp_admin.undeleteRow(row);	
 			} else {
-				console.log("Something ain't right");	
+				console.log("button handler incorrect");	
 			}
 		},
 		isDuplicateCheck: function(inputObj) {
@@ -316,21 +318,22 @@ $(document).ready(function() {
 		sfp_admin.writeData(state,dataID);
 	});
 	
-	//Note that this isn't delegated - new rows are handled differently
-	$("#structureTable :input").on("change",function() {
-		sfp_admin.structureChange($(this));
-	});
-	
-	$("#structureTable").on("focus","input[data-role='colID']",function() {
-		sfp_admin.structureFocus($(this));
-	});
-	
 	$("#saveData").click(function() {
 		sfp_admin.saveData();
 	});
 	
 	$("#saveStructureData").click(function() {
 		sfp_admin.saveStructure();
+	});
+	
+	//Note that this isn't delegated - new rows are handled differently
+	$("#structureTable :input").on("change",function() {
+		sfp_admin.structureChange($(this));
+	});
+	
+	//The rest are all delegated so they work for newly created rows
+	$("#structureTable").on("focus","input[data-role='colID']",function() {
+		sfp_admin.structureFocus($(this));
 	});
 	
 	$("#tabPicker").on("click",".tab", function() {

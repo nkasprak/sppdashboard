@@ -25,7 +25,7 @@
                              	foreach ($columnsArr as $column) : ?> 
                                 	<th class="title" colspan="3" <?php 
 									foreach ($column as $attrName=>$attr) {
-										if (!in_array($attrName,array("shortName","longName","Order")) && !empty($attr)) : ?>data-<?php echo $attrName;?>="<?php echo $attr;?>"<?php endif;
+										if (!in_array($attrName,array("shortName","longName","columnOrder")) && !empty($attr)) : ?>data-<?php echo $attrName;?>="<?php echo $attr;?>"<?php endif;
 									} ?>><?php echo $column["shortName"]; ?></th>
                                 <?php endforeach; ?>
                            	 	</tr><tr><th>&nbsp;</th>
