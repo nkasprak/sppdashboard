@@ -4,11 +4,17 @@ if (isset($_POST["data"])) {
 
 	$theData = $_POST["data"];
 	
+	$theOrder = array_flip($theData["order"]);
+	
 	include("config.php");
 	
 	$mysqli = new mysqli(DB_SERVER,DB_USER,DB_PASSWORD,DB_DATABASE);
 	
-	//print_r($theData["mode"]);
+	$column_id_result = $mysqli->query("SELECT * FROM column_ids");
+	while ($row = mysqli_fetch_assoc($column_id_result)) {
+		$columnRef[$row["column_key"]] = $row["column_id"];
+		$columnIDRef[$row["column_id"]] = $row["column_key"];
+	};
 	
 	if ($theData["mode"]=="data") {
 	
@@ -16,9 +22,10 @@ if (isset($_POST["data"])) {
 		
 		$query .= "`sort_data` = CASE \n";
 		foreach ($theData["changes"] as $change) {
-			$toChange = $change["address"][0]. "_" . $change["address"][1];
+			$toChange = $change["address"][0] . $columnIDRef[$change["address"][1]];
+			//$toChange = $change["address"][0]. "_" . $change["address"][1];
 			$theChange = empty($change["actual"]) ? "NULL" : "'".$change["actual"]."'";
-			$query .= "WHEN `key` = '" .$toChange . "' THEN " . $theChange . " \n";
+			$query .= "WHEN `unique_key` = '" .$toChange . "' THEN " . $theChange . " \n";
 			echo "<p>Changing " . $toChange . " actual data to: <br /> ". $theChange."</p>";
 		}
 		$query.= "ELSE `sort_data` END, ";
@@ -27,7 +34,7 @@ if (isset($_POST["data"])) {
 		foreach ($theData["changes"] as $change) {
 			$toChange = $change["address"][0]. "_" . $change["address"][1];
 			$theChange = empty($change["override"]) ? "NULL" : "'".$change["override"]."'";
-			$query .= "WHEN `key` = '" . $toChange . "' THEN " . $theChange . " \n";
+			$query .= "WHEN `unique_key` = '" . $toChange . "' THEN " . $theChange . " \n";
 			echo "<p>Changing " . $toChange . " text override data to: <br /> ". $theChange ."</p>";
 		}
 		$query.= "ELSE `override_data` END";	
@@ -38,13 +45,13 @@ if (isset($_POST["data"])) {
 		
 		echo "<pre>";
 		print_r($theData);
-		
-		
+	
 		//Additions
 		if (array_key_exists("additions",$theData)) {
 			$additions = true;
 			$theAdditions = $theData["additions"];
 			$additionsQuery = "INSERT INTO columns \nVALUES ";
+			$additionsQueryID = "INSERT INTO column_ids \nVALUES ";
 			function addToQuery($theString) {
 				global $mysqli;
 				if (empty($theString)) {
@@ -54,20 +61,33 @@ if (isset($_POST["data"])) {
 				}
 			};
 			for ($i = 0;$i<count($theAdditions);$i++) {
+				$additionsMax = $mysqli->query("SELECT MAX(column_key) AS MaxID FROM column_ids")->fetch_row();
+				$newColumnKey = $additionsMax[0] + 1;
 				$thisAddition = $theAdditions[$i];
 				$additionsQuery .= ("(" .
-					addToQuery($thisAddition["colID"]) . ",".
+					$newColumnKey . ",".
 					addToQuery($thisAddition["longName"]) . ",".
 					addToQuery($thisAddition["shortName"]) . ",".
 					addToQuery($thisAddition["dataModeSelector"]) . "," .
 					addToQuery($thisAddition["roundTo"]) . "," .
 					addToQuery($thisAddition["prepend"]) . "," . 
-					addToQuery($thisAddition["append"]) . ")");
+					addToQuery($thisAddition["append"]) . "," .
+					addToQuery($thisAddition["tabAssoc"]) . "," .
+					$theOrder[mysqli_real_escape_string($mysqli,$thisAddition["colID"])] . ")");
 				
 				if ($i < count($theAdditions) - 1) $additionsQuery .= ",\n";
+				
+				$additionsQueryID .= ("(" .
+					$newColumnKey . "," .
+					addToQuery(mysqli_real_escape_string($mysqli,$thisAddition["colID"])) . ")");
+					
+				if ($i < count($theAdditions) - 1) $additionsQuery .= ",\n";
+				
 			}			
 			echo $additionsQuery;
+			echo $additionsQueryID;
 			$mysqli->query($additionsQuery);
+			$mysqli->query($additionsQueryID);
 		}
 		
 		//Deletions
@@ -75,23 +95,33 @@ if (isset($_POST["data"])) {
 			$deletions = true;
 			$theDeletions = $theData["deletions"];
 			$deletionsQuery = "DELETE FROM columns WHERE (";
+			$deletionsQueryID = "DELETE FROM columns_id WHERE (";
+			$deletionsQueryData = "DELETE FROM data WHERE (";
 			for ($i=0;$i<count($theDeletions);$i++) {
 				$thisDeletion = $theDeletions[$i];
-				$deletionsQuery .= "`id` = \"" . mysqli_real_escape_string($mysqli,$thisDeletion) . "\"";
-				 if ($i < count($theDeletions) - 1) $deletionsQuery .= " OR ";	
+				$thisDeletionKey = $columnIDRef[$thisDeletion];
+				$toAdd = "`column_key` = \"" . mysqli_real_escape_string($mysqli,$thisDeletionKey) . "\"";
+				if ($i < count($theDeletions) - 1) $toAdd .= " OR ";
+				$deletionsQuery .= $toAdd;
+				$deletionsQueryID .= $toAdd;	
+				$deletionsQueryData .= $toAdd;
+				
 			}
 			$deletionsQuery .= ")";
+			$deletionsQueryID .= ")";
+			$deletionsQueryData .= ")";
 			
 			echo "\n";
 			echo $deletionsQuery;
+			echo "\n" . $deletionsQueryID;
 			$mysqli->query($deletionsQuery);
 		}
 		
 		//Order
 		$theOrder = $theData["order"];
-		$orderQuery = "UPDATE columns SET `columnOrder` = CASE `id`\n";
+		$orderQuery = "UPDATE columns SET `columnOrder` = CASE `column_key`\n";
 		for ($i=0;$i<count($theOrder);$i++) {
-			$orderQuery .= "WHEN \"" .  mysqli_real_escape_string($mysqli,$theOrder[$i]) . "\" THEN \"" . $i . "\"\n"; 
+			$orderQuery .= "WHEN \"" . $columnIDRef[$theOrder[$i]] . "\" THEN \"" . $i . "\"\n"; 
 		}
 		$orderQuery .= "END";
 		
@@ -103,6 +133,10 @@ if (isset($_POST["data"])) {
 		if (array_key_exists("changes",$theData)) {
 			$deferredChanges = array();
 			$structureChanges = function($change) {
+				global $columnIDRef, $mysqli;
+				if ($change["address"][1]=="colID") {
+					$theQuery = "UPDATE column_ids SET `column_id` = \"" . mysqli_real_escape_string($mysqli,$change["change"]) . "\" WHERE `column_key` = " . $columnIDRef[$change["address"][0]];
+				} else {
 				$nmap = array(
 					"colID" => "id",
 					"longName" => "longName",
@@ -113,7 +147,8 @@ if (isset($_POST["data"])) {
 					"append"=>"append",
 					"tabAssoc"=>"tabAssoc"
 				);
-				$theQuery = "UPDATE columns SET `" . $nmap[$change["address"][1]] . "` = \"" . $change["change"] . "\" WHERE `id` = \"" . $change["address"][0] . "\"";
+				$theQuery = "UPDATE columns SET `" . $nmap[$change["address"][1]] . "` = \"" . mysqli_real_escape_string($mysqli,$change["change"]) . "\" WHERE `column_key` = \"" .  $columnIDRef[$change["address"][0]] . "\"";
+				}
 				return $theQuery;
 			};
 			foreach ($theData["changes"] as $change) {
@@ -124,41 +159,24 @@ if (isset($_POST["data"])) {
 					//Column ID change
 					
 					$query = $structureChanges($change);
-					//$mysqli->query($query);
+					$mysqli->query($query);
+					echo "\n" . $query;
 					
 				}
 			}
 			foreach ($deferredChanges as $change) {
 				$query = $structureChanges($change);
-				$mysqli->query($query);	
-				
-				//Update data to refer to new address	
-				
-				$newQuery = "SELECT `key`,`state`,`column_id` FROM data WHERE `column_id` = \"" . $change["address"][0] . "\"";
-				
-				$dataToBeAltered = $mysqli->query($newQuery);
-				while ($toChange = $dataToBeAltered->fetch_array(MYSQLI_ASSOC)) {
-					$newQuery = "UPDATE data SET `key` = \"" . $toChange["state"] . "_" . $change["change"] . "\" WHERE `state` = \"" . $toChange["state"] . "\" AND `column_id` = \"" . $toChange["column_id"]. "\"";
-					echo "\n" . $newQuery;
-					$mysqli->query($newQuery);
-				}
-				
-				$dataQuery = "UPDATE data SET `column_id` = \"" .$change["change"] . "\" WHERE `column_id` = \"" . $change["address"][0] . "\"";
-				echo "\n" . $dataQuery;
-				$mysqli->query($dataQuery);
-				
+				$mysqli->query($query);
+				echo "\n" .$query;
 			}
 		}
 	}
 	
 	echo "</pre>";
 	
-	//$result = $mysqli->query($query);
-	
 	$mysqli->close();
 	
 	echo "<p>Changes saved.</p>";
-	echo "<p>".$query."</p>";
 
 } else {
 	echo "<p>No changes recorded</p>";	

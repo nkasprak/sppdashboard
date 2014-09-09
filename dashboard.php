@@ -7,9 +7,11 @@ $statesQuery = "SELECT * FROM statenames";
 $columnsQuery = "SELECT * FROM columns ORDER BY `columnOrder`";
 $dataQuery = "SELECT * FROM data";
 $tabsQuery = "SELECT * FROM tabs";
+$columnIDQuery = "SELECT * FROM column_ids";
 
 $statesResult = $mysqli->query($statesQuery);
 $columnsResult = $mysqli->query($columnsQuery);
+$columnsIDResult = $mysqli->query($columnIDQuery);
 $dataResult = $mysqli->query($dataQuery);
 $tabsResult = $mysqli->query($tabsQuery);
 
@@ -29,12 +31,16 @@ while ($row = $statesResult->fetch_array(MYSQLI_ASSOC)) {
 }
 
 while ($row = $dataResult->fetch_array(MYSQLI_ASSOC)) {
-	$dataArr[$row["key"]] = $row;	
+	$dataArr[$row["unique_key"]] = $row;	
+}
+
+while ($row = $columnsIDResult->fetch_array(MYSQLI_ASSOC)) {
+	$columnIDArr[$row["column_key"]] = $row["column_id"];
 }
 
 while ($row = $columnsResult->fetch_array(MYSQLI_ASSOC)) {
-	$columnsArr[$row["id"]] = $row;	
-	
+	$columnsArr[$columnIDArr[$row["column_key"]]] = $row;
+	$columnsArr[$columnIDArr[$row["column_key"]]]["column_key"] = $row["column_key"];
 }
 
 while ($row = $tabsResult->fetch_array(MYSQLI_ASSOC)) {

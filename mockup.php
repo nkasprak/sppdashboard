@@ -76,7 +76,7 @@
                         	<?php
 							/*Output table of contents links*/
                           	foreach ($columnsArr as $id=>$column) {
-								if ($column['tabAssoc'] == $tabIndex) echo '<li class="'.$column["id"].'">'.$column['shortName']."</li>\n";
+								if ($column['tabAssoc'] == $tabIndex) echo '<li class="'.$id.'">'.$column['shortName']."</li>\n";
 							}
                           	?>
                         </ul>
@@ -133,7 +133,7 @@
 														$tdAttrString .= "data-" . $attrName . "=\"" . $attr . "\" ";
 													}
 												} 
-												$tdAttrString .= ' class="'.$column["id"].'">'.$column['longName']."</td>\n";
+												$tdAttrString .= ' class="'.$id.'">'.$column['longName']."</td>\n";
 												echo $tdAttrString;
 											}
                                         }
@@ -177,7 +177,7 @@
 											
 											/*Build the lookup key (this is how the main data table references things - state_column 
 											- for example, CA_sfai_proj*/
-											$key = $sid . "_" . $cid;
+											$key = $sid . $column["column_key"];
 											
 											/*Get the data point*/
 											$data = $dataArr[$key];

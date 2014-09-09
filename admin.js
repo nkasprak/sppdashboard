@@ -129,7 +129,7 @@ var sfp_admin = function() {
 		},
 		addNewRow: function(beforeRow) {
 			var html = $(beforeRow).html();
-			var newRow = $("<tr>" + html + "</tr>");
+			var newRow = $("<tr class=\"isNew\">" + html + "</tr>");
 			$(newRow).find("input").val("");
 			$(newRow).find("textArea").val("");
 			var colID = "newRow" + newRowCounter; 
@@ -209,7 +209,11 @@ var sfp_admin = function() {
 			var trs = $("#structureTable tbody tr");
 			var toReturn = [];
 			trs.each(function(i,el) {
-				toReturn.push($(el).find("input[data-role='colID']").attr("data-orgcolid"));
+				if ($(el).hasClass("isNew")) {
+					toReturn.push($(el).find("input[data-role='colID']").val());
+				} else {
+					toReturn.push($(el).find("input[data-role='colID']").attr("data-orgcolid"));
+				}
 			});
 			return toReturn;
 		},
