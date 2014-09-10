@@ -64,6 +64,10 @@ if (isset($_POST["data"])) {
 				$additionsMax = $mysqli->query("SELECT MAX(column_key) AS MaxID FROM column_ids")->fetch_row();
 				$newColumnKey = $additionsMax[0] + 1;
 				$thisAddition = $theAdditions[$i];
+				
+				$columnRef[$newColumnKey] = $thisAddition["colID"];
+				$columnIDRef[$thisAddition["colID"]] = $newColumnKey;
+				
 				$additionsQuery .= ("(" .
 					$newColumnKey . ",".
 					addToQuery($thisAddition["longName"]) . ",".

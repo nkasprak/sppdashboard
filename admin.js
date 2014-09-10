@@ -136,11 +136,22 @@ var sfp_admin = function() {
 			var colIDInput = $(newRow).find("input[data-role='colID']").first();
 			colIDInput.attr("data-orgcolid",colID).val(colID);
 			colIDInput.on("change",function() {
+				sfp_admin.parseNewColId($(this));
 				sfp_admin.duplicateHandler($(this),colID);
 			});
 			$(newRow).insertBefore(beforeRow);
 			structureAdds.push("newRow" + newRowCounter);
 			newRowCounter++;                 	
+		},
+		parseNewColId: function(theInput) {
+			var uVal = theInput.val();
+			console.log(uVal);
+			uVal = uVal.replace(/^\s+|\s+$/g,''); //trim trailing spaces
+			uVal = uVal.replace(/^[0-9]+/,''); //trim leading numerals
+			uVal = uVal.replace(/^\s+|\s+$/g,''); //trim trailing spaces again
+			uVal = uVal.replace(" ","_"); //replace spaces with underscores
+			uVal = uVal.replace(/\W/g, '') //remove remaining non alphanumeric characters
+			theInput.val(uVal);
 		},
 		deleteRow: function(theRow) {
 			var col_id = $(theRow).find("input[data-role='colID']").attr("data-orgcolid");
@@ -200,6 +211,7 @@ var sfp_admin = function() {
 			col_id = row.find("input[data-role='colID']").first().attr("data-orgcolid");
 			attr = inputObj.attr("data-role");
 			if (attr == "colID") {
+				sfp_admin.parseNewColId(col_id_input);
 				if (sfp_admin.duplicateHandler(inputObj,col_id) == false) return false;
 			}
 			addToListOfStructureChanges(col_id,attr);
