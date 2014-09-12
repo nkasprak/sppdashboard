@@ -66,6 +66,8 @@
                     <?php endforeach; ?>
                 </select>
                 <button id="saveData">Save Data</button>
+                <button id="uploadSpreadsheet">Upload Spreadsheet</button>
+                <input type="file" id="spreadsheetUpload" />
                 <div id="responseFromServer">
                 
                 </div><!--end responseFromServer-->

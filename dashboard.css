@@ -2,10 +2,11 @@
 /* CSS Document */
 /*Page styles*/
 body {
-	font-weight:600;
+	font-weight:500;
 	margin:0px;
 	padding:0px;
-	font-family:'Source Sans Pro', Arial, Helvetica, sans-serif;
+	/*font-family:'Source Sans Pro', Arial, Helvetica, sans-serif;*/
+	font-family:"franklin-gothic-urw",Helvetica,Arial,sans-serif;
 	font-size:14px;	
 	background-color:#ddd;
 	color:#444;
@@ -13,8 +14,12 @@ body {
 	
 }
 
+strong, b{
+	font-weight:700;	
+}
+
 select {
-	font-family:'Source Sans Pro', Arial, Helvetica, sans-serif;	
+	font-family:"franklin-gothic-urw",Helvetica,Arial,sans-serif;	
 }
 
 body div {

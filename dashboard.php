@@ -61,17 +61,17 @@ uasort($columnsArr, function($a,$b) {
 
 /*Used in various places to output column <option> elements into selectors*/
 function colMenuOps($tab) {
-	global $columnsArr;
+	global $columnsArr, $columnIDArr;
 	$currentTab = 1;
 	foreach ($columnsArr as $id=>$column) {
 		if (isset($tab)) {
 			if ($column["tabAssoc"] == $tab) {
-				echo '<option value="'.$column["id"].'">'.$column['shortName']."</option>\n";
+				echo '<option value="'.$columnIDArr[$column["column_key"]].'">'.$column['shortName']."</option>\n";
 			}
 		} else {
 			if ($column["tabAssoc"] != $currentTab) echo '<option value="0" disabled>---</option>\n';
 			$currentTab = $column["tabAssoc"];
-			echo '<option value="'.$column["id"].'">'.$column['shortName']."</option>\n";
+			echo '<option value="'.$columnIDArr[$column["column_key"]].'">'.$column['shortName']."</option>\n";
 		}
 	}
 }
