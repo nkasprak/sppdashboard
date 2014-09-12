@@ -328,9 +328,10 @@ $(document).ready(function() {
 	sfp_admin.writeDataDisplay();
 	sfp_admin.storeOriginalColIDs();
 	
-	$("#dataTable").on("change", "input[type='text']", function() {
+	$("#dataTable").on("change", "td span", function() {
 		var state = $(this).parent().parent().attr("data-state");
 		var dataID = $(this).parent().attr("data-id");
+		console.log(state + " " + dataID);
 		sfp_admin.writeData(state,dataID);
 	});
 	
