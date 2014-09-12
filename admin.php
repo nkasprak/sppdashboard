@@ -46,9 +46,9 @@
                                     <?php $key = $name . $column["column_key"];
 									if (array_key_exists($key,$dataArr)) $dataExists = true;
 									else $dataExists = false; ?>
-                                    <td class = "actual" data-id="<?php echo $columnIDArr[$column["column_key"]];?>"><span contenteditable="true" id="input_actual_<?php echo $columnIDArr[$column["column_key"]];?>"><?php echo ($dataExists ? addcslashes($dataArr[$key]["sort_data"],'"') : "");?></span></td>
+                                    <td class = "actual" data-id="<?php echo $columnIDArr[$column["column_key"]];?>"><input type="text" id="input_actual_<?php echo $columnIDArr[$column["column_key"]];?>" value="<?php echo ($dataExists ? addcslashes($dataArr[$key]["sort_data"],'"') : "");?>" /></td>
                                     <td class = "display" data-id="<?php echo $columnIDArr[$column["column_key"]];?>"></td>
-                                    <td class = "override" data-id="<?php echo $columnIDArr[$column["column_key"]];?>"><span contenteditable="true" id="input_override_<?php echo $columnIDArr[$column["column_key"]]?>"><?php echo ($dataExists ? addcslashes($dataArr[$key]["override_data"],'"') : "");?></span></td>
+                                    <td class = "override" data-id="<?php echo $columnIDArr[$column["column_key"]];?>"><input type="text" id="input_override_<?php echo $columnIDArr[$column["column_key"]]?>" value="<?php echo ($dataExists ? addcslashes($dataArr[$key]["override_data"],'"') : "");?>" /></td>
                                     
                                 <?php endforeach; ?>
                                 </tr>

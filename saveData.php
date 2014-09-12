@@ -4,6 +4,8 @@ if (isset($_POST["data"])) {
 
 	$theData = $_POST["data"];
 	
+	$theOrder = array_flip($theData["order"]);
+	
 	include("config.php");
 	
 	$mysqli = new mysqli(DB_SERVER,DB_USER,DB_PASSWORD,DB_DATABASE);
@@ -40,7 +42,7 @@ if (isset($_POST["data"])) {
 		$mysqli->query($query);
 		
 	} else {
-		$theOrder = array_flip($theData["order"]);
+		
 		echo "<pre>";
 		print_r($theData);
 	
