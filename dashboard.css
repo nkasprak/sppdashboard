@@ -2,11 +2,13 @@
 /* CSS Document */
 /*Page styles*/
 body {
-	font-weight:500;
+	font-weight:400;
+	font-size:12px;
+	line-height:120%;
 	margin:0px;
 	padding:0px;
 	/*font-family:'Source Sans Pro', Arial, Helvetica, sans-serif;*/
-	font-family:"franklin-gothic-urw",Helvetica,Arial,sans-serif;
+	font-family:"ff-meta-web-pro",Helvetica,Arial,sans-serif;
 	font-size:14px;	
 	background-color:#ddd;
 	color:#444;
@@ -19,7 +21,7 @@ strong, b{
 }
 
 select {
-	font-family:"franklin-gothic-urw",Helvetica,Arial,sans-serif;	
+	font-family:"ff-meta-web-pro",Helvetica,Arial,sans-serif;	
 }
 
 body div {
@@ -300,6 +302,7 @@ div.dataDisplayArea div.tableArea div.leftTableArea td{
 }
 
 div.dataDisplayArea div.tableArea div.topTableArea{
+	font-family:"ff-meta-web-pro-condensed";
 	width:auto;
 	left:0px;
 	right:0px;

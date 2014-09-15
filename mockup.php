@@ -2,8 +2,7 @@
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <title>SFP Dashboard Wireframe</title>
-<link href='http://fonts.googleapis.com/css?family=Source+Sans+Pro:600,700,600italic,700italic' rel='stylesheet' type='text/css'>
-<script src="//use.typekit.net/hzp4imw.js"></script>
+<script src="//use.typekit.net/vrv7qdc.js"></script>
 <script>try{Typekit.load();}catch(e){}</script>
 <link rel="stylesheet" type="text/css" href="dashboard.css" />
 <script type="text/javascript">
