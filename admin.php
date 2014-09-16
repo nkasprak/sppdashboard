@@ -2,8 +2,8 @@
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <title>SFP Dashboard Wireframe Admin</title>
-<!--<link href='http://fonts.googleapis.com/css?family=Source+Sans+Pro:600,700,600italic,700italic' rel='stylesheet' type='text/css'>
-<link href='http://fonts.googleapis.com/css?family=Source+Code+Pro' rel='stylesheet' type='text/css'>-->
+<script src="//use.typekit.net/vrv7qdc.js"></script>
+<script>try{Typekit.load();}catch(e){}</script>
 <script type="text/javascript" src="jquery-1.11.1.min.js"></script>
 <script src="shared.js"></script>
 <script src="admin.js"></script>
@@ -65,11 +65,21 @@
                         <option selected value="<?php echo $columnIDArr[$column["column_key"]]; ?>"><?php echo $column["shortName"]; ?></option>
                     <?php endforeach; ?>
                 </select>
-                <button id="saveData">Save Data</button>
+                <hr />
+                <p>Save your changes to the database:<br />
+                <button id="saveData">Save Data</button></p>
+                <hr />
+                <p>Get a spreadsheet of the current database: <br />
+                <a href="getSpreadsheet.php">Download</a></p>
+                <hr />
+                <p>Upload a new spreadsheet, based off of one downloaded above:
                 <form id="uploadSpreadsheet" action = "uploadSpreadsheet.php" method="POST" enctype="multipart/form-data">
                 	<input type="file" name="uFile" />
                     <button type="submit">Upload</button>
-                </form>
+                </form><br />
+                To make structural changes (new columns, etc.) use the "structure" tab above; use Excel import/export to make 
+                data changes only. To add a new column, add it to the structure tab first, then download the spreadsheet and 
+                insert your new data. Making structural changes directly in Excel will not work and might cause unpredictable behavior.</p>
                 
                 <div id="responseFromServer">
                 

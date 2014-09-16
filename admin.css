@@ -2,15 +2,22 @@
 /* CSS Document */
 
 body {
-	font-family:Arial,sans-serif;	
+	font-family:"myriad-pro",Arial,sans-serif;	
 	margin:0px;
 	padding:0px;
 	height:100%;
 	font-size:12px;
 }
 
+select, button {
+	font-family:"myriad-pro-condensed",Arial,sans-serif;	
+}
+
+input {
+	font-family:"myriad-pro",Arial,sans-serif;	
+}
+
 input[type="text"] {
-	font-family:Arial,sans-serif;	
 	margin:0px;
 	border:0px;
 	font-size:12px;
@@ -35,8 +42,12 @@ div#tabPicker {
 div#tabPicker .tab {
 	float:left;	
 	margin:5px;
+	padding:5px;
 	height:20px;
 	z-index:100;
+	cursor:pointer;
+	font-size:18px;
+	background-color:#eee;
 }
 
 .tabBody {
@@ -54,17 +65,20 @@ div#tabPicker .tab {
 
 
 div#dataTab div#columnPicker, div#structureTab div#structureLeft {
-	width:250px;
+	width:240px;
 	position:absolute;
 	top:0px;
 }
+
+
 
 div#structureTab div#structureLeft {
 	width:250px;	
 }
 
 div#dataTab div#columnPicker select {
-	height:600px;	
+	height:200px;
+	width:100%;	
 }
 
 .tableScroll {
@@ -102,7 +116,7 @@ textArea {
 	white-space:nowrap;
 	width:200px;
 	height:50px;
-	font-family:Arial, Helvetica, sans-serif;
+	font-family:"myriad-pro",Arial, Helvetica, sans-serif;
 }
 
 .tableWrapper>table td, .tableWrapper>table th {
