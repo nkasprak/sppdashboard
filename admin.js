@@ -288,9 +288,6 @@ var sfp_admin = function() {
 				sfp_admin.clearListOfChanges();
 			});
 			//console.log(postData);
-			
-			
-			
 		},
 		saveData: function() {
 			sfp_admin.save("data");

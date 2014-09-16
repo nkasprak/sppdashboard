@@ -40,6 +40,11 @@ while ($row = $dataSQL->fetch_array(MYSQLI_ASSOC)) {
 	$dataObj[$row["unique_key"]] = $row;
 };
 
+$tabsSQL = $mysqli->query("SELECT * FROM tabs");
+while ($row = $tabsSQL->fetch_array(MYSQLI_ASSOC)) {
+	$tabNames[$row["tab_id"]] = $row["title"];
+};
+
 uasort($columnsObj, function($a,$b) {
 	if ($a["tabAssoc"] != $b["tabAssoc"]) {
 		return $a["tabAssoc"] - $b["tabAssoc"];
@@ -48,8 +53,12 @@ uasort($columnsObj, function($a,$b) {
 	}
 });
 
-$row = 1;
-$col = 2;
+$tabsObj = array();
+$columnObjByTab = array();
+foreach ($columnsObj as $key=>$column) {
+	$tabsObj[$column["tabAssoc"]] = $column["column_key"];
+	$columnsObjByTab[$column["tabAssoc"]][$key] = $column;
+}
 
 //http://stackoverflow.com/questions/10909598/merging-cells-in-excel-by-rows-and-columns-together-using-phpexcel
 function cellsToMergeByColsRow($start = -1, $end = -1, $row = -1){
@@ -62,40 +71,66 @@ function cellsToMergeByColsRow($start = -1, $end = -1, $row = -1){
     return $merge;
 }
 
-foreach ($columnsObj as $key=>$column) {
-	$objPHPExcel->getActiveSheet()->mergeCells(cellsToMergeByColsRow($col,$col+1,$row));
-	$objPHPExcel->getActiveSheet()->setCellValueByColumnAndRow($col,$row,$key);
-	$col=$col+2;
-}
-
-$row++;
-$col=2;
-
-foreach ($columnsObj as $key=>$column) {
-	$objPHPExcel->getActiveSheet()->setCellValueByColumnAndRow($col,$row,"Actual");
-	$col++;
-	$objPHPExcel->getActiveSheet()->setCellValueByColumnAndRow($col,$row,"Override");
-	$col++;
-}
-
-$row++;
-$col=0;
-
-foreach ($statesObj as $stateCode => $state) {
-	$objPHPExcel->getActiveSheet()->setCellValueByColumnAndRow($col,$row,$stateCode);
-	$col++;
-	$objPHPExcel->getActiveSheet()->setCellValueByColumnAndRow($col,$row,$state);
-	$col++;
-	foreach ($columnsObj as $key=>$column) {
-		$data_key = $stateCode . $column["column_key"];
-		$objPHPExcel->getActiveSheet()->setCellValueByColumnAndRow($col,$row,$dataObj[$data_key]["sort_data"]);
+$excelTabIndex = 0;
+foreach ($tabsObj as $tabIndex=>$tab) {
+	$row = 1;
+	$col = 2;
+	$currentColObj = $columnsObjByTab[$tabIndex];
+	$objPHPExcel->setActiveSheetIndex($excelTabIndex);
+	$objPHPExcel->getActiveSheet()->setTitle($tabNames[$tabIndex]);
+	foreach ($currentColObj as $key=>$column) {
+		$objPHPExcel->getActiveSheet()->mergeCells(cellsToMergeByColsRow($col,$col+1,$row));
+		$objPHPExcel->getActiveSheet()->setCellValueByColumnAndRow($col,$row,$key);
+		$col=$col+2;
+	}
+	
+	$row++;
+	$col=2;
+	
+	foreach ($currentColObj as $key=>$column) {
+		$objPHPExcel->getActiveSheet()->setCellValueByColumnAndRow($col,$row,"Actual");
 		$col++;
-		$objPHPExcel->getActiveSheet()->getStyle(PHPExcel_Cell::stringFromColumnIndex($col) . $row)->getNumberFormat()->setFormatCode( PHPExcel_Style_NumberFormat::FORMAT_TEXT );
-		$objPHPExcel->getActiveSheet()->setCellValueByColumnAndRow($col,$row,$dataObj[$data_key]["override_data"]);
+		$objPHPExcel->getActiveSheet()->setCellValueByColumnAndRow($col,$row,"Override");
+		$finalCol = $col;
 		$col++;
 	}
+	
+	$finalColString = PHPExcel_Cell::stringFromColumnIndex($finalCol);
+	
 	$row++;
 	$col=0;
+	
+	foreach ($statesObj as $stateCode => $state) {
+		$objPHPExcel->getActiveSheet()->setCellValueByColumnAndRow($col,$row,$stateCode);
+		$col++;
+		$objPHPExcel->getActiveSheet()->setCellValueByColumnAndRow($col,$row,$state);
+		$col++;
+		foreach ($currentColObj as $key=>$column) {
+			$data_key = $stateCode . $column["column_key"];
+			$objPHPExcel->getActiveSheet()->setCellValueByColumnAndRow($col,$row,$dataObj[$data_key]["sort_data"]);
+			$col++;
+			$objPHPExcel->getActiveSheet()->getStyle(PHPExcel_Cell::stringFromColumnIndex($col) . $row)->getNumberFormat()->setFormatCode( PHPExcel_Style_NumberFormat::FORMAT_TEXT );
+			$objPHPExcel->getActiveSheet()->setCellValueByColumnAndRow($col,$row,$dataObj[$data_key]["override_data"]);
+			$col++;
+		}
+		$finalRow = $row;
+		$row++;
+		$col=0;
+	}
+	
+	$protectStringTop = 'A1:'.$finalColString. '3';
+	$protectStringLeft = 'A1:B'.$finalRow;
+	$unprotectString = "C3:".$finalColString . $finalRow;
+	$objPHPExcel->getActiveSheet()->protectCells($protectStringTop, 'whatiamdoingwillnotwork');
+	$objPHPExcel->getActiveSheet()->getStyle($protectStringTop)->getFont()->getColor()->setRGB('888888');
+	$objPHPExcel->getActiveSheet()->protectCells($protectStringLeft, 'whatiamdoingwillnotwork');
+	$objPHPExcel->getActiveSheet()->getStyle($protectStringLeft)->getFont()->getColor()->setRGB('888888');
+	$objPHPExcel->getActiveSheet()->getStyle($unprotectString)->getProtection()->setLocked(PHPExcel_Style_Protection::PROTECTION_UNPROTECTED);
+	$objPHPExcel->getActiveSheet()->getProtection()->setSheet(true);
+	if ($excelTabIndex < count($tabsObj)-1) {
+		$objPHPExcel->createSheet();
+	}
+	$excelTabIndex++;
 }
 
 // Set active sheet index to the first sheet, so Excel opens this as the first sheet

@@ -66,8 +66,11 @@
                     <?php endforeach; ?>
                 </select>
                 <button id="saveData">Save Data</button>
-                <button id="uploadSpreadsheet">Upload Spreadsheet</button>
-                <input type="file" id="spreadsheetUpload" />
+                <form id="uploadSpreadsheet" action = "uploadSpreadsheet.php" method="POST" enctype="multipart/form-data">
+                	<input type="file" name="uFile" />
+                    <button type="submit">Upload</button>
+                </form>
+                
                 <div id="responseFromServer">
                 
                 </div><!--end responseFromServer-->

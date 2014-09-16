@@ -212,7 +212,7 @@
 											if (!empty($data["override_data"])) $data["display_data"] = $data["override_data"];
 											
 											/*Write the table cell (with class of the column id)*/
-											echo '<td class="'.$cid.'">' . $data["display_data"] . (empty($data["sort_data"]) ? "" : "<span class='sortData'>".$data["sort_data"]."</span>" ) . "</td>\n";
+											echo '<td class="'.$cid.'"' . ($column["mode"] == "numeric" ? ' align="right"' : "") . '>' . $data["display_data"] . (empty($data["sort_data"]) ? "" : "<span class='sortData'>".$data["sort_data"]."</span>" ) . "</td>\n";
 										}
                                     }
                                     echo "</tr>\n";
@@ -227,7 +227,7 @@
 							   for ($fArrI = 0;$fArrI < count($fArr);$fArrI++) {
 									echo '<tr class="row_'. strtolower($fArr[$fArrI]) . '">'."\n";
 								   	foreach ($columnsArr as $cid=>$column) {
-										if ($column['tabAssoc'] == $tabIndex) echo '<td class="'.$cid.'">&nbsp;</td>';	
+										if ($column['tabAssoc'] == $tabIndex) echo '<td class="'.$cid.'"'. ($column["mode"] == "numeric" ? ' align="right"' : "").'>&nbsp;</td>';	
 									}
 									echo "\n</tr>\n";
 							   }

@@ -2,13 +2,12 @@
 /* CSS Document */
 /*Page styles*/
 body {
-	font-weight:400;
 	font-size:12px;
 	line-height:120%;
 	margin:0px;
 	padding:0px;
 	/*font-family:'Source Sans Pro', Arial, Helvetica, sans-serif;*/
-	font-family:"ff-meta-web-pro",Helvetica,Arial,sans-serif;
+	font-family:"myriad-pro",Helvetica,Arial,sans-serif;
 	font-size:14px;	
 	background-color:#ddd;
 	color:#444;
@@ -16,12 +15,8 @@ body {
 	
 }
 
-strong, b{
-	font-weight:700;	
-}
-
 select {
-	font-family:"ff-meta-web-pro",Helvetica,Arial,sans-serif;	
+	font-family:"myriad-pro",Helvetica,Arial,sans-serif;	
 }
 
 body div {
@@ -94,12 +89,13 @@ ul#tabs {
 }
 
 ul#tabs .tab {
+	font-family:"myriad-pro-condensed";
 	box-sizing:border-box;
 	height:100%;
 	display:block;
 	float:left;
 	margin:0px 5px 0px 5px;
-	padding:0px 30px 0px 30px;
+	padding:5px 30px 0px 30px;
 	-webkit-border-radius:6px 6px 0px 0px;
 	-moz-border-radius:6px 6px 0px 0px;
 	border-radius:6px 6px 0px 0px;
@@ -279,6 +275,8 @@ div.dataDisplayArea div.tableArea div.leftTableArea{
 	height:auto;
 	margin-top:70px;
 	overflow:hidden;
+	font-family:"myriad-pro-condensed";
+	font-size:110%;
 }
 
 div.dataDisplayArea div.tableArea div.leftTableArea table {
@@ -302,7 +300,7 @@ div.dataDisplayArea div.tableArea div.leftTableArea td{
 }
 
 div.dataDisplayArea div.tableArea div.topTableArea{
-	font-family:"ff-meta-web-pro-condensed";
+	font-family:"myriad-pro-condensed";
 	width:auto;
 	left:0px;
 	right:0px;
@@ -310,7 +308,7 @@ div.dataDisplayArea div.tableArea div.topTableArea{
 	height:70px;
 	margin-left:125px;
 	overflow:hidden;
-	font-size:110%;
+	font-size:120%;
 	font-weight:bold;
 	color:#003768;
 	
