@@ -285,7 +285,8 @@ var sfp_admin = function() {
 			
 			$.post("saveData.php",{data:postData},function(returnData) {
 				$("#responseFromServer" + (mode=="structure" ? "Structure" : "")).html(returnData);
-				sfp_admin.clearListOfChanges();
+				if (mode=="structure") window.location.reload();
+				else sfp_admin.clearListOfChanges();
 			});
 			//console.log(postData);
 		},

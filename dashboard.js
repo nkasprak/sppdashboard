@@ -226,7 +226,8 @@ try {
 				var totalHeight = $(window).height() + $(window).scrollTop();
 				var remainingHeight = totalHeight - preHeight;
 				dataArea.height(remainingHeight);
-				$("div.dataDisplayArea div.tableArea div.topTableArea").height($("div.dataDisplayArea div.tableArea div.topTableArea table").height());
+				$("div.dataDisplayArea div.tableArea div.topTableArea, div.dataDisplayArea div.tableArea div.topLeft").height($("div.dataDisplayArea div.tableArea div.topTableArea table").height());
+				$("div.dataDisplayArea div.tableArea div.topLeft").width($("div.dataDisplayArea div.tableArea div.leftTableArea").width());
 				$("div.dataDisplayArea div.tableArea div.mainTableArea, div.dataDisplayArea div.tableArea div.leftTableArea").css("margin-top",$("#tabBodies .tab" + tab + " div.dataDisplayArea div.tableArea div.topTableArea table").height());
 			},
 			
@@ -581,9 +582,18 @@ try {
 			/*This is a bit different than the standard tablesorter usage because of the three tables setup*/
 			sortColumn: function(col_id) {
 				var tab = sfpDashboard.getActiveTab();
-				
+			
 				//need the index, not the id, because that's what tablesorter needs
-				var colIndex = returnColIndex(col_id);
+				var colIndex;
+				if (col_id=="default") {
+					colIndex = 0;
+					sfpDashboard.revertSort = true;	
+					col_id = $("#tabBodies .tab" + sfpDashboard.getActiveTab() + " .topTableArea table tr:first td:first").attr("class");
+					console.log(col_id);
+				} else {
+					colIndex = returnColIndex(col_id)
+					sfpDashboard.revertSort = false;	
+				}
 				
 				//a tablesorter sortArray - sort by the index, and then by nothing. (we're not doing a multi-level sort)
 				var sorting = [[colIndex,0]];
@@ -591,8 +601,13 @@ try {
 				//this is for the left table (state names) - sorting by the first (and only) column (using hidden sort data). 
 				var sortin2 = [[0		,0]];
 				
+				console.log("mainTable Sort");
 				//sort the mainTable first
+				$("#tabBodies .tab" + sfpDashboard.getActiveTab() + " .leftTableArea table").trigger("update");
 				$("#tabBodies .tab" + sfpDashboard.getActiveTab() + " .mainTableArea table").trigger("sorton",[sorting]);
+				console.log("done with main table sort");
+				
+				sfpDashboard.revertSort = false;
 				
 				//sort left table in the same order by adding hidden data based on the order in the main table.
 				//Get a collection of all the table cells in the main table in the column being sorted
@@ -604,7 +619,6 @@ try {
 				for (var i = 0;i<mainTDs.length;i++) {
 					//Get the state from the class...
 					state = $(mainTDs[i]).parent().attr("class").replace(" alt","");
-					
 					//Get the corresponding state cell from the left table, and remove any existing sortData...
 					$("#tabBodies .tab" + tab + " .leftTableArea table tr." + state + " td span.sortData").remove();
 					
@@ -615,11 +629,15 @@ try {
 					$("#tabBodies .tab" + tab + " .leftTableArea table tr." + state + " td").append($(span));
 				}
 				
+				console.log("left table sort");
+				
 				//Need to tell the tablesorter that the table's been updated with new sort data...
 				$("#tabBodies .tab" + sfpDashboard.getActiveTab() + " .leftTableArea table").trigger("update");
 				
 				//and finally sort the left table.
 				$("#tabBodies .tab" + sfpDashboard.getActiveTab() + " .leftTableArea table").trigger("sorton",[sortin2]);
+				
+				console.log("done with left table sort");
 				
 				//and then do this stuff again.
 				sfpDashboard.syncCellSize();
@@ -844,14 +862,20 @@ try {
 	$(".mainTableArea table, .leftTableArea table").addClass("tableSorter");
 	sfpDashboard.sortOptions = {
 		emptyTo: "bottom",
-		textExtraction: function(node) {
+		textExtraction: function(node) {	
 			var toReturn;
-			var attr = $(node).children("span.sortData").html();
-			if (typeof attr !== 'undefined' && attr !== false) {
-				toReturn = attr;
-			} else {
-				toReturn = $(node).text();
+			if (sfpDashboard.revertSort == true) {
+				toReturn = $(node).parent().attr("data-initialsort");
+			} 
+			if (typeof(toReturn)=="undefined") {
+				var attr = $(node).children("span.sortData").html();
+				if (typeof attr !== 'undefined' && attr !== false) {
+					toReturn = attr;
+				} else {
+					toReturn = $(node).children("span.display").html();
+				}
 			}
+			console.log(toReturn);
 			return toReturn;
 		}
 	};
@@ -868,6 +892,10 @@ try {
 	$("select.sortBy").change(function() {
 		var col = this.value;
 		sfpDashboard.sortColumn(col);
+	});
+	
+	$(".topLeftHeaderText").click(function() {
+		sfpDashboard.sortColumn("default");
 	});
 	
 	/*Activate initial filter's column change functionality - this can probably be deleted

@@ -83,7 +83,12 @@
                         </ul>
                 	</div>
                     <div class="tableArea">
-             			<div class="openArrow"></div>
+                    	<div class="topLeft">
+                            <div class="openArrow"></div>
+                            <div class="topLeftHeaderText">
+                            	<strong>State</strong>
+                            </div>
+                        </div>
                     	<div class="leftTableArea">
                         	<div class="tableWrapper">
                           <table cellspacing="0" cellpadding="0">
@@ -93,10 +98,11 @@
                             <tbody>
                             <?php 
 							/*Output cells of the left frozen table (state names) - class name will be the two letter state code*/
-							foreach ($statesArr as $id=>$state) {
-								echo '<tr class="'.$id.'"><td>'.$state."</td></tr>\n";
-							}
-							?>
+							$initialSortTracker = 0;
+							foreach ($statesArr as $id=>$state) { ?>
+								<tr class=<?php echo $id; ?>><td><?php echo $state;?></td></tr>
+								<?php $initialSortTracker++; 
+							} ?>
                             </tbody>
                             <tfoot>
                             <tr>
@@ -166,11 +172,12 @@
                                	<?php
 								
 								/*Build the main table*/
+								$initialSortTracker = 0;
                                 foreach ($statesArr as $sid=>$state) {
 									
 									/*As with the left table, each row's class contains the two letter state abbreviation*/
-                                    echo "<tr class=".$sid.">\n";
-									
+                                    echo "<tr class=".$sid." data-initialSort=\"".$initialSortTracker."\">\n";
+									$initialSortTracker++;
                                     foreach ($columnsArr as $cid=>$column) {
 										
 										/*Check if column is associated with current tab*/
@@ -212,7 +219,7 @@
 											if (!empty($data["override_data"])) $data["display_data"] = $data["override_data"];
 											
 											/*Write the table cell (with class of the column id)*/
-											echo '<td class="'.$cid.'"' . ($column["mode"] == "numeric" ? ' align="right"' : "") . '>' . $data["display_data"] . (empty($data["sort_data"]) ? "" : "<span class='sortData'>".$data["sort_data"]."</span>" ) . "</td>\n";
+											echo '<td class="'.$cid.'"' . ($column["mode"] == "numeric" ? ' align="right"' : "") . '><span class="display">' . $data["display_data"] ."</span>". (empty($data["sort_data"]) ? "" : "<span class='sortData'>".$data["sort_data"]."</span>" ) . "</td>\n";
 										}
                                     }
                                     echo "</tr>\n";

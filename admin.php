@@ -13,14 +13,13 @@
 <body>
 	<div class="wrapper">
 	<?php include("dashboard.php"); ?>
-		<h2>Dashboard Admin Area</h2>
        	<div id="dataTab" class="tabBody">
         	<div id="dataTableOuterWrap" class="tableOuterWrap">
             	<div id="dataTableScroll" class="tableScroll">
                     <div id="dataTableWrapper" class="tableWrapper">
                         <table id="dataTable">
                             <thead>
-                            	<tr><th>State</th>
+                            	<tr><th class="first">State</th>
                                 <?php 
                              	foreach ($columnsArr as $column) : ?> 
                                 	<th class="title" colspan="3" <?php 
@@ -30,7 +29,7 @@
 									?> data-id="<?php echo $columnIDArr[$column["column_key"]];
 									?>"><?php echo $column["shortName"]; ?></th>
                                 <?php endforeach; ?>
-                           	 	</tr><tr><th>&nbsp;</th>
+                           	 	</tr><tr><th class="first">&nbsp;</th>
                              	<?php foreach ($columnsArr as $column) : ?>
                                 	<th class = "actual" data-id="<?php echo $columnIDArr[$column["column_key"]];?>">Actual</th>
                                 	<th class = "display" data-id="<?php echo $columnIDArr[$column["column_key"]]; ?>">Display</th>
@@ -41,7 +40,7 @@
                             <tbody>
                             <?php 
                             foreach ($statesArr as $name=>$state) : ?>
-                               <tr class="state" data-state="<?php echo $name; ?>"><td><?php echo $name;?></td>
+                               <tr class="state" data-state="<?php echo $name; ?>"><td class="first"><?php echo $name;?></td>
                                 <?php foreach ($columnsArr as $column) : ?>
                                     <?php $key = $name . $column["column_key"];
 									if (array_key_exists($key,$dataArr)) $dataExists = true;
@@ -122,7 +121,7 @@
                                 <tr>
                                 	<td><button data-role="addDataColumn">Insert Row Above</button></td>
                                     <td><input data-role="colID" type="text" value="<?php echo $columnIDArr[$column["column_key"]]; ?>" /></td>
-                                    <td><textarea data-role="longName"><?php echo htmlToTextLineBreaks($column["longName"]); ?></textarea></td>
+                                    <td class="textAreaInside"><textarea data-role="longName"><?php echo htmlToTextLineBreaks($column["longName"]); ?></textarea></td>
                                     <td><input data-role="shortName" type="text" value="<?php echo $column["shortName"]; ?>" /></td>
                                     <td><?php dataModeSelector($column["mode"]); ?></td>
                                     <td><input data-role="roundTo" <?php echo ($column["mode"]=="numeric" ? "" : "disabled"); ?> type="text" size="2" value="<?php echo $column["roundTo"]; ?>"></td>
@@ -136,21 +135,25 @@
                             
                         </table>
                     </div><!--end structureTableWrapper-->
-                
-                
-            	</div><!--end tableScroll-->
-                
-        	</div><!--end structureOuterWrap-->
-            <div id="structureLeft">
-                <button id="saveStructureData">Save Data</button>
+                	 <div id="structureLeft">
+                     <p>&nbsp;</p>
+                <button id="saveStructureData">Save Structure</button>
+                <P>&nbsp;</P>
                 <div id="responseFromServerStructure">
                 
                 </div><!--end responseFromServer-->    
             </div><!--end structureLeft-->  
+                
+            	</div><!--end tableScroll-->
+                
+        	</div><!--end structureOuterWrap-->
+           
         </div><!--end structureTab-->
-        <div id="tabPicker">
+        
+	</div><!--end wrapper-->
+    <div id="tabPicker">
+        	<h2>Dashboard Admin Area</h2>
         	<div class="tab" id="pickData">Data</div>
             <div class="tab" id="pickStructure">Structure</div>
         </div>
-	</div><!--end wrapper-->
 </body>

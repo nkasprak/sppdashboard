@@ -239,13 +239,31 @@ div.dataDisplayArea div.tableArea {
 	border-top:2px solid #ddd;
 }
 
+div.dataDisplayArea div.tableArea div.topLeft {
+	position:absolute;
+	top:0px;
+	left:-2px;
+	font-size:120%;	
+	box-sizing:border-box;
+	border-right:2px solid #ddd;
+}
+
+div.dataDisplayArea div.tableArea div.topLeftHeaderText {
+	position:absolute;
+	bottom:0.2em;
+	left:4px;
+	font-family:"myriad-pro-condensed",sans-serif;
+	color:#003768;
+	cursor:pointer;
+}
+
 div.dataDisplayArea div.tableArea div.openArrow{
 	width:42px;
 	height:49px;
 	background:url(expand_arrow.png);
 	position:absolute;
-	top:10px;
-	left:10px;
+	top:0px;
+	left:0px;
 	cursor:pointer;
 	display:none;
 }
@@ -256,11 +274,9 @@ div.dataDisplayArea div.tableArea table {
 	
 }
 
-div.dataDisplayArea div.tableArea table span.sortData {
+div.dataDisplayArea div.tableArea table span.sortData, div.dataDisplayArea div.tableArea table span.initialSort {
 	display:none;	
 }
-
-
 
 div.dataDisplayArea div.tableArea div {	
 	box-sizing:border-box;
@@ -311,7 +327,6 @@ div.dataDisplayArea div.tableArea div.topTableArea{
 	font-size:120%;
 	font-weight:bold;
 	color:#003768;
-	
 }
 
 div.dataDisplayArea div.tableArea div.topTableArea .tableWrapper {
