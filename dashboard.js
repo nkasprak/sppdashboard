@@ -594,7 +594,14 @@ try {
 			/*This is a bit different than the standard tablesorter usage because of the three tables setup*/
 			sortColumn: function(col_id) {
 				var tab = sfpDashboard.getActiveTab();
-			
+				var sortOrder = 0;
+				if (col_id == sfpDashboard.sortedColumns.col) {
+					sortOrder = 1 - sfpDashboard.sortedColumns.sorted;
+				}
+				
+				sfpDashboard.sortedColumns = {col:col_id,sorted:sortOrder};
+				console.log(sortOrder);
+				
 				//need the index, not the id, because that's what tablesorter needs
 				var colIndex;
 				if (col_id=="default") {
@@ -607,7 +614,7 @@ try {
 				}
 				
 				//a tablesorter sortArray - sort by the index, and then by nothing. (we're not doing a multi-level sort)
-				var sorting = [[colIndex,0]];
+				var sorting = [[colIndex,sortOrder]];
 				
 				//this is for the left table (state names) - sorting by the first (and only) column (using hidden sort data). 
 				var sortin2 = [[0		,0]];
@@ -809,6 +816,7 @@ try {
 	//this attribute, because IE handles the scroll event differently than Firefox or Chrome
 	//and it's necessary to use setTimeout()
 	sfpDashboard.isScrolling = false;
+	
 	$(window).scroll(function() {
 		
 		/*All this stuff is to make it possible to scroll the entire window down past the sort/filter area and see only the table, 
@@ -865,6 +873,7 @@ try {
 	
 	//necessary to make the tablesorting work
 	$(".mainTableArea table, .leftTableArea table").addClass("tableSorter");
+	sfpDashboard.sortedColumns = {col:"default",sorted:1}; //keeps track of column sort state
 	sfpDashboard.sortOptions = {
 		emptyTo: "bottom",
 		textExtraction: function(node) {	
