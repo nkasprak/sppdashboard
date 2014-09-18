@@ -600,7 +600,6 @@ try {
 				}
 				
 				sfpDashboard.sortedColumns = {col:col_id,sorted:sortOrder};
-				console.log(sortOrder);
 				
 				//need the index, not the id, because that's what tablesorter needs
 				var colIndex;
@@ -900,6 +899,39 @@ try {
 		var col = this.className;
 		sfpDashboard.sortColumn(col);
 		$("select.sortBy").val(col);
+	});
+	
+	$(".topTableArea table td select").click(function(e) {
+		e.stopPropagation();
+	});
+	
+	$(".topTableArea table td select").change(function(e) {
+		var year = $(this).val();
+		var colkey = $(this).data("colkey");
+		var url = "getDataSubset.php?year=" + year + "&col=" + colkey;
+		var tab = sfpDashboard.getActiveTab();
+		console.log(url);
+		$.get(url,function(d) {
+			var theData, colid, colData, baseSelector, overrideData, sortData, roundFactor;
+			colid = d.colID;
+			colData = $(".tab" + tab + " .topTableArea table td." + colid).data();
+			console.log(colData);
+			for (var i=0;i<d.data.length;i++) {
+				theData = d.data[i];
+				baseSelector = ".tab" + tab + " .mainTableArea table tr." + theData.state + " td." + colid;
+				overrideData = theData.sortData;
+				sortData = theData.sortData;
+				if (theData.override_data) overrideData = theData.override_data;
+				if (colData.roundTo) {
+					roundFactor = Math.pow(10,colData.roundTo);
+					overrideData = Math.round(overrideData*roundFactor)/roundFactor;	
+				}
+				if (colData.prepend) overrideData = colData.prepend + ("" + overrideData);
+				if (colData.append) overrideData = colData.append + ("" + overrideData);
+				$(baseSelector + " span.display").html(overrideData);
+				$(baseSelector + " span.sortData").html(sortData);
+			}
+		});
 	});
 	
 	$("select.sortBy").change(function() {

@@ -3,50 +3,58 @@
 $mysqli = new mysqli(DB_SERVER,DB_USER,DB_PASSWORD,DB_DATABASE);
 $mysqli->set_charset("utf8");
 
-$statesQuery = "SELECT * FROM statenames";
-$columnsQuery = "SELECT * FROM columns ORDER BY `columnOrder`";
-$dataQuery = "SELECT * FROM data";
-$tabsQuery = "SELECT * FROM tabs";
-$columnIDQuery = "SELECT * FROM column_ids";
-
-$statesResult = $mysqli->query($statesQuery);
-$columnsResult = $mysqli->query($columnsQuery);
-$columnsIDResult = $mysqli->query($columnIDQuery);
-$dataResult = $mysqli->query($dataQuery);
-$tabsResult = $mysqli->query($tabsQuery);
-
-$mysqli->close();
-
 /*Will fill these with results from query*/
 $statesArr = array();
 $columnsArr = array();
 $tabsArr = array();
 $dataArr = array();
-
+$yearsArr = array();
 $tabBounds = array();
 
-/*Fill arrays with query results*/
+/*Do initial queries and fill arrays with query results*/
+$statesResult = $mysqli->query("SELECT * FROM statenames");
 while ($row = $statesResult->fetch_array(MYSQLI_ASSOC)) {
 	$statesArr[$row["id"]] = $row["states"];	
 }
 
-while ($row = $dataResult->fetch_array(MYSQLI_ASSOC)) {
-	$dataArr[$row["unique_key"]] = $row;	
-}
-
+$columnsIDResult = $mysqli->query("SELECT * FROM column_ids");
 while ($row = $columnsIDResult->fetch_array(MYSQLI_ASSOC)) {
 	$columnIDArr[$row["column_key"]] = $row["column_id"];
 }
 
+$columnsResult = $mysqli->query("SELECT * FROM columns ORDER BY `columnOrder`");
 while ($row = $columnsResult->fetch_array(MYSQLI_ASSOC)) {
 	$columnsArr[$columnIDArr[$row["column_key"]]] = $row;
 	$columnsArr[$columnIDArr[$row["column_key"]]]["column_key"] = $row["column_key"];
 }
 
+$tabsResult = $mysqli->query("SELECT * FROM tabs");
 while ($row = $tabsResult->fetch_array(MYSQLI_ASSOC)) {
 	$tabsArr[$row["tab_id"]] = $row;	
 	array_push($tabBounds,$row["tab_id"]); /*Will use to keep track of max/min tabs ids*/
 }
+
+$yearsResult = $mysqli->query("SELECT * FROM column_years");
+while ($row = $yearsResult->fetch_array(MYSQLI_ASSOC)) {
+	if (!array_key_exists($row["column_key"],$yearsArr)) {
+		$yearsArr[$row["column_key"]] = array();
+	} 
+	array_push($yearsArr[$row["column_key"]],$row["year"]);
+}
+
+/*Initial data return is most recent year only*/
+foreach ($columnIDArr as $key=>$id) {
+	$dataQuery = "SELECT * FROM data WHERE column_key = \"" . $key . "\"";
+	if (array_key_exists($key,$yearsArr)) {
+		$dataQuery .= " AND `year` = \"" . max($yearsArr[$key]) . "\"";
+	}
+	$dataResult[$key] = $mysqli->query($dataQuery);
+	while ($row = $dataResult[$key]->fetch_array(MYSQLI_ASSOC)) {
+		$dataArr[$row["unique_key"]] = $row;	
+	}
+}
+
+$mysqli->close();
 
 /*Used to figure out how many tab links to put out*/
 $lowTab = min($tabBounds);
@@ -74,5 +82,21 @@ function colMenuOps($tab) {
 			echo '<option value="'.$columnIDArr[$column["column_key"]].'">'.$column['shortName']."</option>\n";
 		}
 	}
+}
+
+/*Used to output a year selection input for columns with multiple years defined*/
+function yearSelector($colKey) {
+	global $yearsArr;
+	$toReturn = "";
+	if (array_key_exists($colKey,$yearsArr)) {
+		$toReturn .= "<select data-colkey=\"" . $colKey . "\">";
+		$maxYear = max($yearsArr[$colKey]);
+		for ($i=0;$i<count($yearsArr[$colKey]);$i++) {
+			$year = $yearsArr[$colKey][$i];
+			$toReturn .= "<option value=\"" . $year . "\"" . ($year == $maxYear ? " selected" : "") . ">" . $year . "</option>";
+		}
+		$toReturn .= "</select>";
+	}
+	return $toReturn;
 }
 ?>

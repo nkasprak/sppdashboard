@@ -38,7 +38,8 @@
 </div>
 <div id="wrapper">
 
-	<div id="header">[Banner]
+	<div id="header">
+    <img src="banner.png" alt="" />
     </div> <!--end div#header-->
 	
     <div id="main">
@@ -140,7 +141,11 @@
 														$tdAttrString .= "data-" . $attrName . "=\"" . $attr . "\" ";
 													}
 												} 
-												$tdAttrString .= ' class="'.$id.'">'.$column['longName']."</td>\n";
+												$tdAttrString .= ' class="'.$id.'">';
+												if (array_key_exists($column["column_key"],$yearsArr)) {
+													$tdAttrString .= yearSelector($column["column_key"]);
+												}
+												$tdAttrString .= $column['longName']."</td>\n";
 												echo $tdAttrString;
 											}
                                         }
@@ -185,7 +190,12 @@
 											
 											/*Build the lookup key (this is how the main data table references things - state_column 
 											- for example, CA_sfai_proj*/
-											$key = $sid . $column["column_key"];
+											
+											if (array_key_exists($column["column_key"],$yearsArr)) {
+												$key_app = "_" . max($yearsArr[$column["column_key"]]);
+											} else $key_app = "_0";
+											
+											$key = $sid . $column["column_key"] . $key_app;
 											
 											/*Get the data point*/
 											$data = $dataArr[$key];
