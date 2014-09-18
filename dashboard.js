@@ -226,9 +226,15 @@ try {
 				var totalHeight = $(window).height() + $(window).scrollTop();
 				var remainingHeight = totalHeight - preHeight;
 				dataArea.height(remainingHeight);
-				$("div.dataDisplayArea div.tableArea div.topTableArea, div.dataDisplayArea div.tableArea div.topLeft").height($("div.dataDisplayArea div.tableArea div.topTableArea table").height());
-				$("div.dataDisplayArea div.tableArea div.topLeft").width($("div.dataDisplayArea div.tableArea div.leftTableArea").width());
-				$("div.dataDisplayArea div.tableArea div.mainTableArea, div.dataDisplayArea div.tableArea div.leftTableArea").css("margin-top",$("#tabBodies .tab" + tab + " div.dataDisplayArea div.tableArea div.topTableArea table").height());
+				$(".tab" + tab + " .dataDisplayArea  .tableArea .topTableArea, .tab" + tab + " .dataDisplayArea .tableArea .topLeft").height(
+					$(".tab" + tab + " .dataDisplayArea .tableArea .topTableArea table").height()
+				);
+				$(".tab" + tab + " .dataDisplayArea .tableArea .topLeft").width(
+					$(".tab" + tab + " div.dataDisplayArea .tableArea div.leftTableArea").width()
+				);
+				$(".tab" + tab + " .dataDisplayArea .tableArea div.mainTableArea, .tab" + tab + " .dataDisplayArea .tableArea .leftTableArea").css(
+					"margin-top",$("#tabBodies .tab" + tab + " .dataDisplayArea .tableArea .topTableArea table").height()
+				);
 			},
 			
 			/*Synchronize scrolling. Since we're dealing with three separate tables that look like one, this function runs
@@ -302,18 +308,24 @@ try {
 				///...and fill the next selector with different options depending on what was found
 				switch (mode) {
 					case "text":
-					$("div#tabBodies div.tab" + activeTab + " ul.filters li.filter"+filterIndex+ " select.compare").html('<option value="contains" selected>Contains</option>\
-																					<option value="equal">Is</option>');
+					$("div#tabBodies div.tab" + activeTab + " ul.filters li.filter"+filterIndex+ " select.compare").html(
+						'<option value="contains" selected>Contains</option>\
+						<option value="equal">Is</option>'
+					);
 					break;
 					case "numeric":
-					$("div#tabBodies div.tab" + activeTab + " ul.filters li.filter"+filterIndex+ " select.compare").html('<option value="equal" selected>Is Equal To</option>\
-														 <option value="less">Is Less Than</option>\
-														 <option value="more">Is Greater Than</option>');
+					$("div#tabBodies div.tab" + activeTab + " ul.filters li.filter"+filterIndex+ " select.compare").html(
+						'<option value="equal" selected>Is Equal To</option>\
+						 <option value="less">Is Less Than</option>\
+						 <option value="more">Is Greater Than</option>'
+					);
 					break;
 					case "date":
-					$("div#tabBodies div.tab" + activeTab + " ul.filters li.filter"+filterIndex+ " select.compare").html('<option value="equal" selected>Is Equal To</option>\
-														 <option value="less">Is Before</option>\
-														 <option value="more">Is After</option>');
+					$("div#tabBodies div.tab" + activeTab + " ul.filters li.filter"+filterIndex+ " select.compare").html(
+						'<option value="equal" selected>Is Equal To</option>\
+						 <option value="less">Is Before</option>\
+						 <option value="more">Is After</option>'
+					);
 					//In this case, override the defaults set earlier.
 					$("div#tabBodies div.tab" + activeTab + " ul.filters li.filter"+filterIndex+  " span.datePicker").show();
 					$("div#tabBodies div.tab" + activeTab + " ul.filters li.filter"+filterIndex+  " input.val").hide();
@@ -589,7 +601,6 @@ try {
 					colIndex = 0;
 					sfpDashboard.revertSort = true;	
 					col_id = $("#tabBodies .tab" + sfpDashboard.getActiveTab() + " .topTableArea table tr:first td:first").attr("class");
-					console.log(col_id);
 				} else {
 					colIndex = returnColIndex(col_id)
 					sfpDashboard.revertSort = false;	
@@ -601,11 +612,9 @@ try {
 				//this is for the left table (state names) - sorting by the first (and only) column (using hidden sort data). 
 				var sortin2 = [[0		,0]];
 				
-				console.log("mainTable Sort");
 				//sort the mainTable first
-				$("#tabBodies .tab" + sfpDashboard.getActiveTab() + " .leftTableArea table").trigger("update");
+				$("#tabBodies .tab" + sfpDashboard.getActiveTab() + " .mainTableArea table").trigger("update");
 				$("#tabBodies .tab" + sfpDashboard.getActiveTab() + " .mainTableArea table").trigger("sorton",[sorting]);
-				console.log("done with main table sort");
 				
 				sfpDashboard.revertSort = false;
 				
@@ -629,15 +638,11 @@ try {
 					$("#tabBodies .tab" + tab + " .leftTableArea table tr." + state + " td").append($(span));
 				}
 				
-				console.log("left table sort");
-				
 				//Need to tell the tablesorter that the table's been updated with new sort data...
 				$("#tabBodies .tab" + sfpDashboard.getActiveTab() + " .leftTableArea table").trigger("update");
 				
 				//and finally sort the left table.
 				$("#tabBodies .tab" + sfpDashboard.getActiveTab() + " .leftTableArea table").trigger("sorton",[sortin2]);
-				
-				console.log("done with left table sort");
 				
 				//and then do this stuff again.
 				sfpDashboard.syncCellSize();
@@ -875,7 +880,6 @@ try {
 					toReturn = $(node).children("span.display").html();
 				}
 			}
-			console.log(toReturn);
 			return toReturn;
 		}
 	};
