@@ -30,6 +30,7 @@ input[type="text"] {
 .wrapper {
 	position:absolute;
 	width:100%;
+	min-width:940px;
 	height:100%;
 }
 
@@ -132,8 +133,39 @@ div#dataTab div#columnPicker select {
 	width:100%;	
 }
 
+#structureTable span.yAdd, 
+#structureTable span.yDelete, 
+#structureTable div.upArrow, 
+#structureTable div.downArrow, 
+#structureTable div.deleteButton {
+	cursor:pointer;	
+}
+
+#structureTable span.yAdd:hover, 
+#structureTable span.yDelete:hover, 
+#structureTable div.upArrow:hover, 
+#structureTable div.downArrow:hover, 
+#structureTable div.deleteButton:hover {
+	color:#003768;
+}
+
 #structureTable td.textAreaInside {
 	width:200px;	
+}
+
+#structureTable input[type="text"] {
+	width:100%;	
+}
+
+#structureTable input[type="text"].yAddYear {
+	width:35px;
+	border: 1px solid #aaa;
+}
+
+#structureTable ul.years{
+	list-style-type:none;
+	padding:0px;
+	margin:0px;
 }
 
 .tableWrapper {

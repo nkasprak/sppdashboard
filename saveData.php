@@ -4,7 +4,9 @@ if (isset($_POST["data"])) {
 
 	$theData = $_POST["data"];
 	
-	$theOrder = array_flip($theData["order"]);
+	if (array_key_exists("order",$theData)) {
+		$theOrder = array_flip($theData["order"]);
+	}
 	
 	include("config.php");
 	
@@ -22,8 +24,9 @@ if (isset($_POST["data"])) {
 		
 		$query .= "`sort_data` = CASE \n";
 		foreach ($theData["changes"] as $change) {
-			$toChange = $change["address"][0] . $columnIDRef[$change["address"][1]];
-			//$toChange = $change["address"][0]. "_" . $change["address"][1];
+			$year = 0;
+			if (isset($change["address"][2])) $year = $change["address"][2];
+			$toChange = $change["address"][0] . $columnIDRef[$change["address"][1]] . "_" . $year;
 			$theChange = empty($change["actual"]) ? "NULL" : "'".$change["actual"]."'";
 			$query .= "WHEN `unique_key` = '" .$toChange . "' THEN " . $theChange . " \n";
 			echo "<p>Changing " . $toChange . " actual data to: <br /> ". $theChange."</p>";
@@ -32,7 +35,7 @@ if (isset($_POST["data"])) {
 		
 		$query .= "`override_data` = CASE ";
 		foreach ($theData["changes"] as $change) {
-			$toChange = $change["address"][0]. "_" . $change["address"][1];
+			$toChange = $change["address"][0]. $columnIDRef[$change["address"][1]] . "_" . $year;
 			$theChange = empty($change["override"]) ? "NULL" : "'".$change["override"]."'";
 			$query .= "WHEN `unique_key` = '" . $toChange . "' THEN " . $theChange . " \n";
 			echo "<p>Changing " . $toChange . " text override data to: <br /> ". $theChange ."</p>";

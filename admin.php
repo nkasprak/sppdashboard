@@ -24,10 +24,13 @@
                              	foreach ($columnsArr as $column) : ?> 
                                 	<th class="title" colspan="3" <?php 
 									foreach ($column as $attrName=>$attr) {
-										if (!in_array($attrName,array("shortName","longName","columnOrder","column_key")) && !empty($attr)) : ?>data-<?php echo $attrName;?>="<?php echo $attr;?>"<?php endif;
+										if (!in_array($attrName,array("shortName","longName","columnOrder","column_key")) && !empty($attr)) : ?>data-<?php echo $attrName;?>="<?php echo $attr;?>" <?php endif;
 									};
-									?> data-id="<?php echo $columnIDArr[$column["column_key"]];
-									?>"><?php echo $column["shortName"]; ?></th>
+									?>data-id="<?php echo $columnIDArr[$column["column_key"]];
+									?>" <?php 
+											echo (array_key_exists($column["column_key"],$yearsArr)) ? 
+											("data-year=\"".max($yearsArr[$column["column_key"]])."\"") :
+											("") ?>><?php echo $column["shortName"]; ?></th>
                                 <?php endforeach; ?>
                            	 	</tr><tr><th class="first">&nbsp;</th>
                              	<?php foreach ($columnsArr as $column) : ?>
@@ -42,7 +45,14 @@
                             foreach ($statesArr as $name=>$state) : ?>
                                <tr class="state" data-state="<?php echo $name; ?>"><td class="first"><?php echo $name;?></td>
                                 <?php foreach ($columnsArr as $column) : ?>
-                                    <?php $key = $name . $column["column_key"];
+                                    <?php 
+									if (array_key_exists($column["column_key"],$yearsArr)) {
+										$key_app = "_" . max($yearsArr[$column["column_key"]]);
+									} else $key_app = "_0";
+									
+									$key = $name . $column["column_key"] . $key_app;
+									
+									//$key = $name . $column["column_key"];
 									if (array_key_exists($key,$dataArr)) $dataExists = true;
 									else $dataExists = false; ?>
                                     <td class = "actual" data-id="<?php echo $columnIDArr[$column["column_key"]];?>"><input type="text" id="input_actual_<?php echo $columnIDArr[$column["column_key"]];?>" value="<?php echo ($dataExists ? addcslashes($dataArr[$key]["sort_data"],'"') : "");?>" /></td>
@@ -94,6 +104,7 @@
                                 <tr>
                                 	<th></th>
                                     <th>ID</th>
+                                    <th>Years</th>
                                     <th>Long Name</th>
                                     <th>Short Name</th>
                                     <th>Data Mode</th>
@@ -121,6 +132,14 @@
                                 <tr>
                                 	<td><button data-role="addDataColumn">Insert Row Above</button></td>
                                     <td><input data-role="colID" type="text" value="<?php echo $columnIDArr[$column["column_key"]]; ?>" /></td>
+                                    <td><?php
+									if (array_key_exists($column["column_key"],$yearsArr)) {
+										echo "<ul class=\"years\">"; 
+									foreach ($yearsArr[$column["column_key"]] as $year) { ?>
+										<li><span class="year"><?php echo $year;?></span> <span class="yDelete">[x]</span></li>
+									<?php }
+										echo "</ul>"; 
+									}?><input class="yAddYear" type="text" /> <span class="yAdd">[Add]</span></td>
                                     <td class="textAreaInside"><textarea data-role="longName"><?php echo htmlToTextLineBreaks($column["longName"]); ?></textarea></td>
                                     <td><input data-role="shortName" type="text" value="<?php echo $column["shortName"]; ?>" /></td>
                                     <td><?php dataModeSelector($column["mode"]); ?></td>

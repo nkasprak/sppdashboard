@@ -10,6 +10,8 @@ var sfp_admin = function() {
 	var structureChanges = [];
 	var structureAdds = [];
 	var structureDels = [];
+	var yearAdds = [];
+	var yearDels = [];
 	var makeCheckable = function(arr) {
 		Object.defineProperty(arr,"has",{enumerable:false,value:function(toCheck) {
 			var toReturn = false;
@@ -25,8 +27,11 @@ var sfp_admin = function() {
 	var originalValues = {};
 	makeCheckable(dataChanges);
 	makeCheckable(structureChanges);
-	var addToListOfChanges = function(state,col_id) {
-		if (!dataChanges.has([state,col_id])) dataChanges.push([state,col_id]);
+	makeCheckable(yearAdds);
+	makeCheckable(yearDels);
+	var addToListOfChanges = function(state,col_id,year) {
+		if (typeof(year)=="undefined") year=0;
+		if (!dataChanges.has([state,col_id,year])) dataChanges.push([state,col_id,year]);
 	};
 	var addToListOfStructureChanges = function(col_id,attr) {
 		if (!structureChanges.has([col_id,attr])) structureChanges.push([col_id,attr]);
@@ -84,11 +89,16 @@ var sfp_admin = function() {
 			var actualSelector = "#dataTable tr[data-state='" + state + "'] input#input_actual_" + col_id;	
 			var overrideSelector = "#dataTable tr[data-state='" + state + "'] input#input_override_" + col_id;	
 			var actual_value = $(actualSelector).val();
+			var year = 0;
+			var th = $("#dataTable thead th.title[data-id=\"" + col_id + "\"]");
+			if (typeof(th.data("year")) !== "undefined") {
+				year = th.data("year");
+			}
 			if ($(overrideSelector).val() != "") {var toWrite = $(overrideSelector).val();}
 			else {var toWrite = sfpdashboard_shared_functions.formatData(attrs,actual_value);}
 			var displaySelector = "#dataTable tr[data-state='" + state + "'] td.display[data-id='" + col_id + "']";
 			$(displaySelector).html(toWrite);
-			addToListOfChanges(state,col_id);
+			addToListOfChanges(state,col_id,year);
 		},
 		changeColumns: function(theColumns) {
 			sfp_admin.hideAllColumns();
@@ -241,11 +251,13 @@ var sfp_admin = function() {
 			if (mode == "data") {
 				var changes = sfp_admin.getListOfChanges();
 				$.each(changes,function(i,change) {
-					postData.changes.push({
+					var toPush = {
 						address: change,
 						actual: makeNull($("tr[data-state='" + change[0] + "'] input#input_actual_" + change[1]).val()),
 						override: makeNull($("tr[data-state='" + change[0] + "'] input#input_override_" + change[1]).val())
-					});
+					}
+					if (change[2] != 0) toPush.year = change[2];
+					postData.changes.push(toPush);
 				});
 			} else if (mode == "structure") {
 				postData.additions = [];
@@ -270,6 +282,10 @@ var sfp_admin = function() {
 					}
 				});
 				var changes = sfp_admin.getListOfStructureChanges();
+				console.log(yearAdds);
+				console.log(yearDels);
+				
+				return false;
 				$.each(changes,function(i,change) {
 					var row = $("input[data-orgcolid='" + change[0] + "']").parents("tr").first();
 					var value = row.find("[data-role='"+change[1] + "']").val();
@@ -282,7 +298,7 @@ var sfp_admin = function() {
 					});
 				});
 			} else {return false;}
-			
+	
 			$.post("saveData.php",{data:postData},function(returnData) {
 				$("#responseFromServer" + (mode=="structure" ? "Structure" : "")).html(returnData);
 				if (mode=="structure") window.location.reload();
@@ -317,6 +333,32 @@ var sfp_admin = function() {
 				}
 			});
 			return isDuplicate;
+		},
+		yearAdd: function(elem) {
+			var year = $(elem).siblings("input").first().val();
+			var colID = $(elem).parents("tr").first().find("input[data-role='colID']").attr("data-orgcolid");
+			$(elem).parents("td").first().children("ul").first().append(
+				"<li><span class=\"year\">" + year + "</span> <span class=\"yDelete\">[x]</span></li>"
+			);
+			var toAdd = [colID,year];
+			if (yearDels.has(toAdd)) {
+				yearDels.splice(yearDels.indexOf(toAdd),1);
+			} else if (!yearAdds.has(toAdd)) {
+				yearAdds.push(toAdd);
+			}
+			console.log(yearAdds);
+		},
+		yearDel: function(elem) {
+			var colID = $(elem).parents("tr").first().find("input[data-role='colID']").attr("data-orgcolid");
+			var year = $(elem).siblings("span.year").first().html();
+			var toAdd = [colID,year];
+			if (yearAdds.has(toAdd)) {
+				yearAdds.splice(yearAdds.indexOf(toAdd),1);
+			} else if (!yearDels.has(toAdd)) {
+				yearDels.push(toAdd);
+			}
+			console.log(yearDels);
+			$(elem).parents("li").first().remove();
 		}
 	}
 }();
@@ -341,7 +383,7 @@ $(document).ready(function() {
 	});
 	
 	//Note that this isn't delegated - new rows are handled differently
-	$("#structureTable :input").on("change",function() {
+	$("#structureTable :input").not(".yAddYear").on("change",function() {
 		sfp_admin.structureChange($(this));
 	});
 	
@@ -367,6 +409,14 @@ $(document).ready(function() {
 	$("#structureTable").on("click","div.downArrow",function() {
 		var row = $(this).parents("tr")[0];
 		sfp_admin.moveRow("down",row);
+	});
+	
+	$("#structureTable").on("click","span.yAdd",function() {
+		sfp_admin.yearAdd(this);
+	});
+	
+	$("#structureTable").on("click","span.yDelete",function() {
+		sfp_admin.yearDel(this);
 	});
 	
 	$("#structureTable").on("click","div.deleteButton",function() {
