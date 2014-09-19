@@ -910,27 +910,31 @@ try {
 		var colkey = $(this).data("colkey");
 		var url = "getDataSubset.php?year=" + year + "&col=" + colkey;
 		var tab = sfpDashboard.getActiveTab();
-		console.log(url);
 		$.get(url,function(d) {
 			var theData, colid, colData, baseSelector, overrideData, sortData, roundFactor;
 			colid = d.colID;
 			colData = $(".tab" + tab + " .topTableArea table td." + colid).data();
-			console.log(colData);
 			for (var i=0;i<d.data.length;i++) {
 				theData = d.data[i];
 				baseSelector = ".tab" + tab + " .mainTableArea table tr." + theData.state + " td." + colid;
-				overrideData = theData.sortData;
-				sortData = theData.sortData;
-				if (theData.override_data) overrideData = theData.override_data;
-				if (colData.roundTo) {
-					roundFactor = Math.pow(10,colData.roundTo);
-					overrideData = Math.round(overrideData*roundFactor)/roundFactor;	
+				if (theData.override_data == null && theData.sort_data == null) {
+					$(baseSelector + " span.display").html("");
+					$(baseSelector + " span.sortData").html("");
+				} else {
+					overrideData = theData.sort_data;
+					sortData = theData.sort_data;
+					if (theData.override_data) overrideData = theData.override_data;
+					if (colData.roundto !== null) {
+						roundFactor = Math.pow(10,colData.roundto);
+						overrideData = Math.round(overrideData*roundFactor)/roundFactor;	
+					}
+					if (colData.prepend) overrideData = colData.prepend + ("" + overrideData);
+					if (colData.append) overrideData = colData.append + ("" + overrideData);
+					$(baseSelector + " span.display").html(overrideData);
+					$(baseSelector + " span.sortData").html(sortData);
 				}
-				if (colData.prepend) overrideData = colData.prepend + ("" + overrideData);
-				if (colData.append) overrideData = colData.append + ("" + overrideData);
-				$(baseSelector + " span.display").html(overrideData);
-				$(baseSelector + " span.sortData").html(sortData);
 			}
+			sfpDashboard.fillFooter(tab);
 		});
 	});
 	
