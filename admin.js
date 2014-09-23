@@ -299,12 +299,12 @@ var sfp_admin = function() {
 				});
 			} else {return false;}
 	
-			$.post("saveData.php",{data:postData},function(returnData) {
+			/*$.post("saveData.php",{data:postData},function(returnData) {
 				$("#responseFromServer" + (mode=="structure" ? "Structure" : "")).html(returnData);
 				if (mode=="structure") window.location.reload();
 				else sfp_admin.clearListOfChanges();
-			});
-			//console.log(postData);
+			});*/
+			console.log(postData);
 		},
 		saveData: function() {
 			sfp_admin.save("data");
@@ -336,28 +336,42 @@ var sfp_admin = function() {
 		},
 		yearAdd: function(elem) {
 			var year = $(elem).siblings("input").first().val();
-			var colID = $(elem).parents("tr").first().find("input[data-role='colID']").attr("data-orgcolid");
-			$(elem).parents("td").first().children("ul").first().append(
-				"<li><span class=\"year\">" + year + "</span> <span class=\"yDelete\">[x]</span></li>"
-			);
-			var toAdd = [colID,year];
-			if (yearDels.has(toAdd)) {
-				yearDels.splice(yearDels.indexOf(toAdd),1);
-			} else if (!yearAdds.has(toAdd)) {
-				yearAdds.push(toAdd);
+			var yearsInList = [];
+			var lis =$(elem).parents("td").first().children("ul").first().find("li span.year");
+			$.each(lis,function() {
+				yearsInList.push($(this).text()*1);
+			});
+			for (var i = 0;i<yearsInList.length;i++) {
+				if (year == yearsInList[i]) {
+					console.log("duplicate");
+					return false;	
+				}
 			}
-			console.log(yearAdds);
+			year = Math.round(year);
+			if (!isNaN(year)) {
+				var colID = $(elem).parents("tr").first().find("input[data-role='colID']").attr("data-orgcolid");
+				var toAdd = [colID,year];
+				if (!yearAdds.has(toAdd)) {
+					$(elem).parents("td").first().children("ul").first().append(
+						"<li><span class=\"year\">" + year + "</span> <span class=\"yDelete\">[x]</span></li>"
+					);
+					if (yearDels.has(toAdd)) {
+						yearDels.splice(yearDels.indexOf(toAdd),1);
+					} else {
+						yearAdds.push(toAdd);
+					}
+				}
+			}
 		},
 		yearDel: function(elem) {
 			var colID = $(elem).parents("tr").first().find("input[data-role='colID']").attr("data-orgcolid");
 			var year = $(elem).siblings("span.year").first().html();
 			var toAdd = [colID,year];
 			if (yearAdds.has(toAdd)) {
-				yearAdds.splice(yearAdds.indexOf(toAdd),1);
+				yearAdds.splice(yearAdds.indexOf(toAdd)-1,1);
 			} else if (!yearDels.has(toAdd)) {
 				yearDels.push(toAdd);
 			}
-			console.log(yearDels);
 			$(elem).parents("li").first().remove();
 		}
 	}
