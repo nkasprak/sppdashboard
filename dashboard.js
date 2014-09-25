@@ -914,6 +914,8 @@ try {
 			var theData, colid, colData, baseSelector, overrideData, sortData, roundFactor;
 			colid = d.colID;
 			colData = $(".tab" + tab + " .topTableArea table td." + colid).data();
+			//make blank first
+			$(".tab" + tab + " .mainTableArea table td." + colid).html("<span class=\"display\"></span><span class=\"sortData\"></span>");
 			for (var i=0;i<d.data.length;i++) {
 				theData = d.data[i];
 				baseSelector = ".tab" + tab + " .mainTableArea table tr." + theData.state + " td." + colid;

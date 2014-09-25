@@ -155,7 +155,6 @@ var sfp_admin = function() {
 		},
 		parseNewColId: function(theInput) {
 			var uVal = theInput.val();
-			console.log(uVal);
 			uVal = uVal.replace(/^\s+|\s+$/g,''); //trim trailing spaces
 			uVal = uVal.replace(/^[0-9]+/,''); //trim leading numerals
 			uVal = uVal.replace(/^\s+|\s+$/g,''); //trim trailing spaces again
@@ -282,10 +281,9 @@ var sfp_admin = function() {
 					}
 				});
 				var changes = sfp_admin.getListOfStructureChanges();
-				console.log(yearAdds);
-				console.log(yearDels);
-				
-				return false;
+				postData.yearAdds = yearAdds;
+				postData.yearDels = yearDels;
+		
 				$.each(changes,function(i,change) {
 					var row = $("input[data-orgcolid='" + change[0] + "']").parents("tr").first();
 					var value = row.find("[data-role='"+change[1] + "']").val();
@@ -298,13 +296,14 @@ var sfp_admin = function() {
 					});
 				});
 			} else {return false;}
-	
-			/*$.post("saveData.php",{data:postData},function(returnData) {
-				$("#responseFromServer" + (mode=="structure" ? "Structure" : "")).html(returnData);
-				if (mode=="structure") window.location.reload();
-				else sfp_admin.clearListOfChanges();
-			});*/
 			console.log(postData);
+			
+			$.post("saveData.php",{data:postData},function(returnData) {
+				$("#responseFromServer" + (mode=="structure" ? "Structure" : "")).html(returnData);
+				//if (mode=="structure") window.location.reload();
+				//else sfp_admin.clearListOfChanges();
+			});
+			
 		},
 		saveData: function() {
 			sfp_admin.save("data");
@@ -337,6 +336,10 @@ var sfp_admin = function() {
 		yearAdd: function(elem) {
 			var year = $(elem).siblings("input").first().val();
 			var yearsInList = [];
+			var ul = $(elem).parents("td").first().children("ul");
+			if (ul.length == 0) {
+				$(elem).parents("td").first().prepend($("<ul class=\"years\">"));
+			}
 			var lis =$(elem).parents("td").first().children("ul").first().find("li span.year");
 			$.each(lis,function() {
 				yearsInList.push($(this).text()*1);

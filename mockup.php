@@ -197,36 +197,43 @@
 											
 											$key = $sid . $column["column_key"] . $key_app;
 											
-											/*Get the data point*/
-											$data = $dataArr[$key];
-											
-											/*Default case*/
-											$data["display_data"] = $data["sort_data"];
-											
-											/*If it's a date, it'll be stored as days into the year, so convert that
-											to displayable data and store the numeric data in the (hidden) sortdata
-											<span>*/
-											if ($column["mode"] == "date" && !empty($data["sort_data"])) {
-												$timestamp = ($data["sort_data"])*86400;
-												$theDate = date("M j",$timestamp);
-												$data["display_data"] = $theDate;
-											}
-											
-											/*If it's numeric, there are a few options for formatting the number
-											(prepend, append, rounding, etc.) Output the formatted number and
-											also the raw number as hidden sortdata*/
-											if ($column["mode"] == "numeric" && is_numeric($data["sort_data"])) {
-												if (is_numeric($column["roundTo"])) $data["display_data"] = round($data["sort_data"],$column["roundTo"]);
-												if (!empty($column["prepend"])) {
-													if ($data["sort_data"] < 0) {
-														$data["display_data"] = "-" . $column["prepend"] . abs($data["display_data"]);	
-													} else {
-														$data["display_data"] = $column["prepend"] . abs($data["display_data"]);
+											if (array_key_exists($key,$dataArr)) {
+												/*Data exists*/
+												/*Get the data point*/
+												$data = $dataArr[$key];
+												
+												/*Default case*/
+												$data["display_data"] = $data["sort_data"];
+												
+												/*If it's a date, it'll be stored as days into the year, so convert that
+												to displayable data and store the numeric data in the (hidden) sortdata
+												<span>*/
+												if ($column["mode"] == "date" && !empty($data["sort_data"])) {
+													$timestamp = ($data["sort_data"])*86400;
+													$theDate = date("M j",$timestamp);
+													$data["display_data"] = $theDate;
+												}
+												
+												/*If it's numeric, there are a few options for formatting the number
+												(prepend, append, rounding, etc.) Output the formatted number and
+												also the raw number as hidden sortdata*/
+												if ($column["mode"] == "numeric" && is_numeric($data["sort_data"])) {
+													if (is_numeric($column["roundTo"])) $data["display_data"] = round($data["sort_data"],$column["roundTo"]);
+													if (!empty($column["prepend"])) {
+														if ($data["sort_data"] < 0) {
+															$data["display_data"] = "-" . $column["prepend"] . abs($data["display_data"]);	
+														} else {
+															$data["display_data"] = $column["prepend"] . abs($data["display_data"]);
+														}
 													}
 												}
+												
+												if (!empty($data["override_data"])) $data["display_data"] = $data["override_data"];
+											} else {
+												/*Data does not exist*/
+												$data["display_data"] = "";
+												$data["override_data"] = "";	
 											}
-											
-											if (!empty($data["override_data"])) $data["display_data"] = $data["override_data"];
 											
 											/*Write the table cell (with class of the column id)*/
 											echo '<td class="'.$cid.'"' . ($column["mode"] == "numeric" ? ' align="right"' : "") . '><span class="display">' . $data["display_data"] ."</span>". (empty($data["sort_data"]) ? "" : "<span class='sortData'>".$data["sort_data"]."</span>" ) . "</td>\n";
