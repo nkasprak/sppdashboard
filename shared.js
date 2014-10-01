@@ -10,6 +10,7 @@ var sfpdashboard_shared_functions = function() {
 			return months[month] + " " + day;
 		},
 		formatData: function(attrs,quantity) {
+			if (quantity == "") return "";
 			if (attrs.mode != "text") {
 				if (attrs.roundto && !isNaN(quantity)) {
 					roundMultiplier = Math.pow(10,attrs.roundto*1);

@@ -45,6 +45,15 @@ while ($row = $tabsSQL->fetch_array(MYSQLI_ASSOC)) {
 	$tabNames[$row["tab_id"]] = $row["title"];
 };
 
+$yearsSQL = $mysqli->query("SELECT `year`,`column_key` FROM column_years");
+$yearsObj = array();
+while ($row = $yearsSQL->fetch_array(MYSQLI_ASSOC)) {
+	if (!array_key_exists($row["column_key"],$yearsObj)) {
+		$yearsObj[$row["column_key"]] = array();
+	}
+	array_push($yearsObj[$row["column_key"]],$row["year"]);
+};
+
 uasort($columnsObj, function($a,$b) {
 	if ($a["tabAssoc"] != $b["tabAssoc"]) {
 		return $a["tabAssoc"] - $b["tabAssoc"];
@@ -79,9 +88,16 @@ foreach ($tabsObj as $tabIndex=>$tab) {
 	$objPHPExcel->setActiveSheetIndex($excelTabIndex);
 	$objPHPExcel->getActiveSheet()->setTitle($tabNames[$tabIndex]);
 	foreach ($currentColObj as $key=>$column) {
-		$objPHPExcel->getActiveSheet()->mergeCells(cellsToMergeByColsRow($col,$col+1,$row));
-		$objPHPExcel->getActiveSheet()->setCellValueByColumnAndRow($col,$row,$key);
-		$col=$col+2;
+		if (array_key_exists($column["column_key"],$yearsObj)) {
+			$numYears = count($yearsObj[$column["column_key"]]);
+			$objPHPExcel->getActiveSheet()->mergeCells(cellsToMergeByColsRow($col,$col+1+2*($numYears-1),$row));
+			$objPHPExcel->getActiveSheet()->setCellValueByColumnAndRow($col,$row,$key);
+			$col=$col+2*$numYears;
+		} else {
+			$objPHPExcel->getActiveSheet()->mergeCells(cellsToMergeByColsRow($col,$col+1,$row));
+			$objPHPExcel->getActiveSheet()->setCellValueByColumnAndRow($col,$row,$key);
+			$col=$col+2;
+		}
 	}
 	
 	$row++;
@@ -96,6 +112,22 @@ foreach ($tabsObj as $tabIndex=>$tab) {
 	}
 	
 	$finalColString = PHPExcel_Cell::stringFromColumnIndex($finalCol);
+	
+	$row++;
+	$col=2;
+	
+	foreach ($currentColObj as $key=>$column) {
+		if (array_key_exists($column["column_key"],$yearsObj)) {
+			$numYears = count($yearsObj[$column["column_key"]]);
+			foreach ($yearsObj[$column["column_key"]] as $year) {
+				$objPHPExcel->getActiveSheet()->mergeCells(cellsToMergeByColsRow($col,$col+1,$row));
+				$objPHPExcel->getActiveSheet()->setCellValueByColumnAndRow($col,$row,$year);
+				$col = $col+2;
+			}
+		} else {
+			$col=$col+2;
+		}
+	}
 	
 	$row++;
 	$col=0;

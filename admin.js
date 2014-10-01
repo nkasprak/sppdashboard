@@ -7,6 +7,7 @@ var sfp_admin = function() {
 	};
 	var newRowCounter = 0;
 	var dataChanges = [];
+	var dataChangesByAddress = {};
 	var structureChanges = [];
 	var structureAdds = [];
 	var structureDels = [];
@@ -32,6 +33,10 @@ var sfp_admin = function() {
 	var addToListOfChanges = function(state,col_id,year) {
 		if (typeof(year)=="undefined") year=0;
 		if (!dataChanges.has([state,col_id,year])) dataChanges.push([state,col_id,year]);
+		dataChangesByAddress[state + "_" + col_id + "_" + year] = {
+			actual:	$("#dataTable tr[data-state=\"" + state + "\"] td.actual[data-id=\"" + col_id + "\"] input").val(),
+			override: $("#dataTable tr[data-state=\"" + state + "\"] td.override[data-id=\"" + col_id + "\"] input").val(),
+		}
 	};
 	var addToListOfStructureChanges = function(col_id,attr) {
 		if (!structureChanges.has([col_id,attr])) structureChanges.push([col_id,attr]);
@@ -56,12 +61,18 @@ var sfp_admin = function() {
 		getListOfChanges: function() {
 			return dataChanges;
 		},
+		getListOfChangesByAddress : function() {
+			return dataChangesByAddress;
+		},
 		getListOfStructureChanges: function() {
 			return structureChanges;
 		},
 		clearListOfChanges: function() {
 			while(dataChanges.length > 0) {
 				dataChanges.pop();	
+			}
+			for (adr in dataChangesByAddress) {
+				delete dataChangesByAddress[adr];
 			}
 		},
 		clearListOfStructureChanges: function() {
@@ -91,8 +102,8 @@ var sfp_admin = function() {
 			var actual_value = $(actualSelector).val();
 			var year = 0;
 			var th = $("#dataTable thead th.title[data-id=\"" + col_id + "\"]");
-			if (typeof(th.data("year")) !== "undefined") {
-				year = th.data("year");
+			if (typeof(th.attr("data-year")) !== "undefined") {
+				year = th.attr("data-year");
 			}
 			if ($(overrideSelector).val() != "") {var toWrite = $(overrideSelector).val();}
 			else {var toWrite = sfpdashboard_shared_functions.formatData(attrs,actual_value);}
@@ -250,10 +261,11 @@ var sfp_admin = function() {
 			if (mode == "data") {
 				var changes = sfp_admin.getListOfChanges();
 				$.each(changes,function(i,change) {
+					var adrString = change[0] + "_" + change[1] + "_" + change[2];
 					var toPush = {
 						address: change,
-						actual: makeNull($("tr[data-state='" + change[0] + "'] input#input_actual_" + change[1]).val()),
-						override: makeNull($("tr[data-state='" + change[0] + "'] input#input_override_" + change[1]).val())
+						actual: makeNull(dataChangesByAddress[adrString].actual),
+						override: makeNull(dataChangesByAddress[adrString].override)
 					}
 					if (change[2] != 0) toPush.year = change[2];
 					postData.changes.push(toPush);
@@ -296,7 +308,7 @@ var sfp_admin = function() {
 					});
 				});
 			} else {return false;}
-			console.log(postData);
+			//console.log(postData);
 			
 			$.post("saveData.php",{data:postData},function(returnData) {
 				$("#responseFromServer" + (mode=="structure" ? "Structure" : "")).html(returnData);
@@ -391,6 +403,55 @@ $(document).ready(function() {
 		sfp_admin.writeData(state,dataID);
 	});
 	
+	$("#dataTable th select").change(function(e) {
+		var year = $(this).val();
+		$(this).parents("th").first().attr("data-year",year);
+		var colkey = $(this).data("colkey");
+		var url = "getDataSubset.php?year=" + year + "&col=" + colkey;
+		$.get(url,function(d) {
+			var theData, colid, colData, baseSelector, overrideData, sortData, roundFactor, displayData, existingChanges, theChange;
+			colid = d.colID;
+			colData = sfp_admin.getAttrs(colid);
+			existingChanges = sfp_admin.getListOfChangesByAddress();
+			//make blank first
+			$("#dataTable td.actual[data-id=\"" + colid + "\"] input").val("");
+			$("#dataTable td.display[data-id=\"" + colid + "\"]").text("");
+			$("#dataTable td.override[data-id=\"" + colid + "\"] input").val("");
+			for (var i=0;i<d.data.length;i++) {
+				theData = d.data[i];
+				baseSelector = "#dataTable tr[data-state=\"" + theData.state + "\"] td.";
+				if (theData.override_data == null && theData.sort_data == null) {
+					$(baseSelector + "actual[data-id=\"" + colid + "\"] input").val("");
+					$(baseSelector + "display[data-id=\"" + colid + "\"]").text("");
+					$(baseSelector + "override[data-id=\"" + colid + "\"] input").val("");
+				} else {
+					overrideData = theData.override_data;
+					sortData = theData.sort_data;
+					
+					theChange = theData.state + "_" + colid + "_" + year;
+					if (existingChanges[theChange]) {
+						overrideData = existingChanges[theChange].override;
+						sortData = existingChanges[theChange].actual;
+					}
+					
+					displayData = sortData;
+					if (colData.roundto !== null) {
+						roundFactor = Math.pow(10,colData.roundto);
+						displayData = Math.round(displayData*roundFactor)/roundFactor;	
+					}
+					if (colData.prepend) displayData = colData.prepend + ("" + displayData);
+					if (colData.append) displayData = colData.append + ("" + displayData);
+					$(baseSelector + "actual[data-id=\"" + colid + "\"] input").val(sortData);
+					$(baseSelector + "display[data-id=\"" + colid + "\"]").text(displayData);
+					if (overrideData) {
+						$(baseSelector + "display[data-id=\"" + colid + "\"]").text(overrideData);
+						$(baseSelector + "override[data-id=\"" + colid + "\"] input").val(overrideData);
+					}
+				}
+			}
+		});
+	});
+	
 	$("#saveData").click(function() {
 		sfp_admin.saveData();
 	});
@@ -448,5 +509,7 @@ $(document).ready(function() {
 	});
 	
 	$("#structureTable").on("click","button[data-role='addDataColumn']",sfp_admin.addRowClickFunction);
+	
+	
 	
 });

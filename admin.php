@@ -21,16 +21,18 @@
                             <thead>
                             	<tr><th class="first">State</th>
                                 <?php 
-                             	foreach ($columnsArr as $column) : ?> 
+                             	foreach ($columnsArr as $column) : ?>
+                                	<?php //print_r($columnsArr); ?>
                                 	<th class="title" colspan="3" <?php 
 									foreach ($column as $attrName=>$attr) {
-										if (!in_array($attrName,array("shortName","longName","columnOrder","column_key")) && !empty($attr)) : ?>data-<?php echo $attrName;?>="<?php echo $attr;?>" <?php endif;
+										if (!in_array($attrName,array("shortName","longName","columnOrder","column_key")) && isset($attr)) : ?>data-<?php echo $attrName;?>="<?php echo $attr;?>" <?php endif;
 									};
 									?>data-id="<?php echo $columnIDArr[$column["column_key"]];
 									?>" <?php 
 											echo (array_key_exists($column["column_key"],$yearsArr)) ? 
 											("data-year=\"".max($yearsArr[$column["column_key"]])."\"") :
-											("") ?>><?php echo $column["shortName"]; ?></th>
+											("") ?>><?php echo $column["shortName"]; 
+													echo yearSelector($column["column_key"]); ?></th>
                                 <?php endforeach; ?>
                            	 	</tr><tr><th class="first">&nbsp;</th>
                              	<?php foreach ($columnsArr as $column) : ?>

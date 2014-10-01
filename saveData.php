@@ -57,6 +57,8 @@ if (isset($_POST["data"])) {
 		$query .= "`override_data` = CASE ";
 		for ($i = 0;$i<count($theData["changes"]);$i++) {
 			$change = $theData["changes"][$i];
+			$year = 0;
+			if (isset($change["address"][2])) $year = $change["address"][2];
 			$toChange = $change["address"][0]. $columnIDRef[$change["address"][1]] . "_" . $year;
 			$theChange = empty($change["override"]) ? "NULL" : "'".$change["override"]."'";
 			$query .= "WHEN `unique_key` = '" . $toChange . "' THEN " . $theChange . " \n";
