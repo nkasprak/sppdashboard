@@ -98,39 +98,47 @@ foreach ($tabsObj as $tabIndex=>$tab) {
 			$objPHPExcel->getActiveSheet()->setCellValueByColumnAndRow($col,$row,$key);
 			$col=$col+2;
 		}
+		$objPHPExcel->getActiveSheet()->getStyle(PHPExcel_Cell::stringFromColumnIndex($col) . $row)->getAlignment()->applyFromArray(
+			array('horizontal' => PHPExcel_Style_Alignment::HORIZONTAL_CENTER,)
+		);
 	}
 	
-	$row++;
-	$col=2;
-	
-	foreach ($currentColObj as $key=>$column) {
-		$objPHPExcel->getActiveSheet()->setCellValueByColumnAndRow($col,$row,"Actual");
-		$col++;
-		$objPHPExcel->getActiveSheet()->setCellValueByColumnAndRow($col,$row,"Override");
-		$finalCol = $col;
-		$col++;
-	}
-	
-	$finalColString = PHPExcel_Cell::stringFromColumnIndex($finalCol);
-	
-	$row++;
+	$row = $row + 2;
 	$col=2;
 	
 	foreach ($currentColObj as $key=>$column) {
 		if (array_key_exists($column["column_key"],$yearsObj)) {
 			$numYears = count($yearsObj[$column["column_key"]]);
 			foreach ($yearsObj[$column["column_key"]] as $year) {
+				$objPHPExcel->getActiveSheet()->setCellValueByColumnAndRow($col,$row-1,"Actual");
+				$objPHPExcel->getActiveSheet()->setCellValueByColumnAndRow($col+1,$row-1,"Override");
 				$objPHPExcel->getActiveSheet()->mergeCells(cellsToMergeByColsRow($col,$col+1,$row));
 				$objPHPExcel->getActiveSheet()->setCellValueByColumnAndRow($col,$row,$year);
+				$objPHPExcel->getActiveSheet()->getStyle(PHPExcel_Cell::stringFromColumnIndex($col) . $row)->getAlignment()->applyFromArray(
+					array('horizontal' => PHPExcel_Style_Alignment::HORIZONTAL_CENTER,)
+				);
 				$col = $col+2;
 			}
 		} else {
+			$objPHPExcel->getActiveSheet()->setCellValueByColumnAndRow($col,$row-1,"Actual");
+			$objPHPExcel->getActiveSheet()->setCellValueByColumnAndRow($col+1,$row-1,"Override");
 			$col=$col+2;
 		}
+		$finalCol = $col-1;
 	}
+	$finalColString = PHPExcel_Cell::stringFromColumnIndex($finalCol);
 	
 	$row++;
 	$col=0;
+	
+	$writeData = function($data_key) {
+		global $objPHPExcel, $col,$row,$dataObj;
+		$objPHPExcel->getActiveSheet()->setCellValueByColumnAndRow($col,$row,$dataObj[$data_key]["sort_data"]);
+		$col++;
+		$objPHPExcel->getActiveSheet()->getStyle(PHPExcel_Cell::stringFromColumnIndex($col) . $row)->getNumberFormat()->setFormatCode( PHPExcel_Style_NumberFormat::FORMAT_TEXT );
+		$objPHPExcel->getActiveSheet()->setCellValueByColumnAndRow($col,$row,$dataObj[$data_key]["override_data"]);
+		$col++;
+	};
 	
 	foreach ($statesObj as $stateCode => $state) {
 		$objPHPExcel->getActiveSheet()->setCellValueByColumnAndRow($col,$row,$stateCode);
@@ -138,12 +146,13 @@ foreach ($tabsObj as $tabIndex=>$tab) {
 		$objPHPExcel->getActiveSheet()->setCellValueByColumnAndRow($col,$row,$state);
 		$col++;
 		foreach ($currentColObj as $key=>$column) {
-			$data_key = $stateCode . $column["column_key"];
-			$objPHPExcel->getActiveSheet()->setCellValueByColumnAndRow($col,$row,$dataObj[$data_key]["sort_data"]);
-			$col++;
-			$objPHPExcel->getActiveSheet()->getStyle(PHPExcel_Cell::stringFromColumnIndex($col) . $row)->getNumberFormat()->setFormatCode( PHPExcel_Style_NumberFormat::FORMAT_TEXT );
-			$objPHPExcel->getActiveSheet()->setCellValueByColumnAndRow($col,$row,$dataObj[$data_key]["override_data"]);
-			$col++;
+			if (array_key_exists($column["column_key"],$yearsObj)) {
+				foreach ($yearsObj[$column["column_key"]] as $year) {
+					$writeData($stateCode . $column["column_key"] . "_" . $year);
+				}
+			} else {
+				$writeData($stateCode . $column["column_key"] . "_0");
+			}
 		}
 		$finalRow = $row;
 		$row++;
@@ -152,7 +161,7 @@ foreach ($tabsObj as $tabIndex=>$tab) {
 	
 	$protectStringTop = 'A1:'.$finalColString. '3';
 	$protectStringLeft = 'A1:B'.$finalRow;
-	$unprotectString = "C3:".$finalColString . $finalRow;
+	$unprotectString = "C4:".$finalColString . $finalRow;
 	$objPHPExcel->getActiveSheet()->protectCells($protectStringTop, 'whatiamdoingwillnotwork');
 	$objPHPExcel->getActiveSheet()->getStyle($protectStringTop)->getFont()->getColor()->setRGB('888888');
 	$objPHPExcel->getActiveSheet()->protectCells($protectStringLeft, 'whatiamdoingwillnotwork');

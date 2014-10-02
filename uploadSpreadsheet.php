@@ -38,21 +38,34 @@ for ($sheetIndex = 0;$sheetIndex<$numSheets;$sheetIndex++) {
 	$colIndexToColID = array();
 	$stateIDToRowIndex = array();
 	$rowIndexToStateID = array();
+	$colIDToYearArr = array();
 	
 	$objPHPExcel->setActiveSheetIndex($sheetIndex);
 	$row=1;
 	$col=2;
 	
 	$currentVal = $objPHPExcel->getActiveSheet()->getCellByColumnAndRow($col,$row)->getValue();
-	while (!empty($currentVal)) {
-		$colIDToColIndex[$currentVal] = $col;
-		$colIndexToColID[$col] = $currentVal;
+	
+	//a bit of a hack, but non left-most parts of merged cells are considered empty, so this looks at the
+	//"actual"/"override" labels instead
+	$inRangeCheck = $objPHPExcel->getActiveSheet()->getCellByColumnAndRow($col,$row+1)->getValue(); 
+	while (!empty($inRangeCheck)) {
+		$currentYear = $objPHPExcel->getActiveSheet()->getCellByColumnAndRow($col,$row+2)->getValue();
+		if (!empty($currentYear)) {
+			if (!array_key_exists($currentVal,$colIDToYearArr)) {
+				$colIDToYearArr[$currentVal] = array();	
+			}
+			array_push($colIDToYearArr[$currentVal],$currentYear);
+		}
+		if (!array_key_exists($currentVal,$colIDToColIndex)) $colIDToColIndex[$currentVal] = $col;
+		if (!array_key_exists($col,$colIndexToColID)) $colIndexToColID[$col] = $currentVal;
 		$col = $col+2;
 		if ($col > 999) break;
-		$currentVal = $objPHPExcel->getActiveSheet()->getCellByColumnAndRow($col,$row)->getValue();	
+		$nextVal = $objPHPExcel->getActiveSheet()->getCellByColumnAndRow($col,$row)->getValue();
+		if (!empty($nextVal)) $currentVal = $nextVal;
+		$inRangeCheck = $objPHPExcel->getActiveSheet()->getCellByColumnAndRow($col,$row+1)->getValue(); 	
 	}
-	
-	$row = 3;
+	$row = 4;
 	$col = 0;
 	
 	$currentVal = $objPHPExcel->getActiveSheet()->getCellByColumnAndRow($col,$row)->getValue();
@@ -66,11 +79,21 @@ for ($sheetIndex = 0;$sheetIndex<$numSheets;$sheetIndex++) {
 	
 	foreach ($stateIDToRowIndex as $state=>$row) {
 		foreach ($colIDToColIndex as $colID=>$col) {
-			array_push($changes, array(
-				$state . $colIDtoColKey[$colID],
-				$objPHPExcel->getActiveSheet()->getCellByColumnAndRow($col,$row)->getValue(),
-				$objPHPExcel->getActiveSheet()->getCellByColumnAndRow($col+1,$row)->getValue()
-			));
+			if (array_key_exists($colID,$colIDToYearArr)) {
+				foreach ($colIDToYearArr[$colID] as $offset=>$year) {
+					array_push($changes, array(
+						$state . $colIDtoColKey[$colID] . "_" . $year,
+						$objPHPExcel->getActiveSheet()->getCellByColumnAndRow($col + $offset*2,$row)->getValue(),
+						$objPHPExcel->getActiveSheet()->getCellByColumnAndRow($col + $offset*2 + 1,$row)->getValue()
+					));	
+				}
+			} else {
+				array_push($changes, array(
+					$state . $colIDtoColKey[$colID] . "_0",
+					$objPHPExcel->getActiveSheet()->getCellByColumnAndRow($col,$row)->getValue(),
+					$objPHPExcel->getActiveSheet()->getCellByColumnAndRow($col+1,$row)->getValue()
+				));
+			}
 		}
 	};
 }
@@ -81,10 +104,10 @@ foreach ($changes as $change) {
 	$sortData = empty(mysqli_real_escape_string($mysqli,$change[1])) ? "NULL" : '"' . mysqli_real_escape_string($mysqli,$change[1]). '"';
 	$overrideData = empty(mysqli_real_escape_string($mysqli,$change[2])) ? "NULL" : '"' . mysqli_real_escape_string($mysqli,$change[2]). '"';
 	$key = mysqli_real_escape_string($mysqli,$change[0]);
-	$updateQuery = "UPDATE data SET `sort_data` = ".$sortData . ", `override_data` = ".$overrideData . " WHERE `unique_key` = ".$key;
+	$updateQuery = "UPDATE data SET `sort_data` = ".$sortData . ", `override_data` = ".$overrideData . " WHERE `unique_key` = \"".$key . "\"";
 	echo $updateQuery . "<br />";
 	$queriesExecuted++;
-	//$mysqli->query($updateQuery);
+	$mysqli->query($updateQuery);
 	if ($queriesExecuted%100==0) {
 		echo "Updated " . $queriesExecuted . " records...<br />";
 		flush();

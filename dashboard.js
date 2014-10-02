@@ -476,6 +476,7 @@ try {
 			/*Apply the currently displayed filters. This is a bit complicated, so here goes...*/
 			applyFilters: function(tab_id) {
 				footersNeedCalculation[tab_id] = true;
+				sfpDashboard.filtersApplied[tab_id] = $("#tabBodies .tab" + tab_id + " ul.filters li").length;
 				
 				/*Loop through relevant DOM elements and extract the necessary data*/
 				var filterArray = function() {
@@ -583,8 +584,9 @@ try {
 				
 				/*Re-do all this stuff*/
 				sfpDashboard.fillFooter();
-				sfpDashboard.recalcLayout();
 				sfpDashboard.syncCellSize();
+				sfpDashboard.recalcLayout();
+				sfpDashboard.syncCellSize(); //this seems to need to be done both before and after.
 				sfpDashboard.assignAltClasses();
 				
 			}, /*end applyFilters*/
@@ -957,6 +959,8 @@ try {
 	});
 	sfpDashboard.filterColumnChange(1);
 	
+	sfpDashboard.filtersApplied = [];
+	
 	//activate Add link
 	$("ul.filters li.filterAdd span.add").click(function() {
 		sfpDashboard.addFilter(sfpDashboard.getActiveTab());
@@ -964,8 +968,10 @@ try {
 	
 	//activate Remove link
 	$("ul.filters li.filterAdd span.remove").click(function() {
-		sfpDashboard.removeFilter(sfpDashboard.getActiveTab());
-		sfpDashboard.applyFilters(sfpDashboard.getActiveTab());
+		var tab = sfpDashboard.getActiveTab();
+		sfpDashboard.removeFilter(tab);
+		if (typeof(sfpDashboard.filtersApplied[tab]) == "undefined") sfpDashboard.filtersApplied[tab] = 0;
+		if (sfpDashboard.filtersApplied[tab] > $("#tabBodies .tab" + tab + " ul.filters li").length) sfpDashboard.applyFilters(tab);
 	});
 	
 	//activate filter apply button
