@@ -11,6 +11,10 @@ if (isset($_POST["data"])) {
 	include("config.php");
 	
 	$mysqli = new mysqli(DB_SERVER,DB_USER,DB_PASSWORD,DB_DATABASE);
+	function myes($string) {
+		global $mysqli;
+		return mysqli_real_escape_string($mysqli,$string);	
+	}
 	
 	$column_id_result = $mysqli->query("SELECT * FROM column_ids");
 	while ($row = mysqli_fetch_assoc($column_id_result)) {
@@ -35,14 +39,14 @@ if (isset($_POST["data"])) {
 			if (isset($change["address"][2])) $year = $change["address"][2];
 			$toChange = $change["address"][0] . $columnIDRef[$change["address"][1]] . "_" . $year;
 			$theChange = empty($change["actual"]) ? "NULL" : "'".$change["actual"]."'";
-			$dataExists = mysqli_num_rows($mysqli->query("SELECT `unique_key` FROM data WHERE `unique_key` = \"" . $toChange . "\""));
+			$dataExists = mysqli_num_rows($mysqli->query("SELECT `unique_key` FROM data WHERE `unique_key` = \"" . myes($toChange) . "\""));
 			if ($dataExists > 0) {
 				$useUpdate = true;
-				$query .= "WHEN `unique_key` = '" .$toChange . "' THEN " . $theChange . " \n";
+				$query .= "WHEN `unique_key` = '" .myes($toChange) . "' THEN " . myes($theChange) . " \n";
 				echo "<p>Changing " . $toChange . " actual data to: <br /> ". $theChange."</p>";
 			} else {
 				$useInsert = true;
-				$overrideChange = empty($change["override"]) ? "NULL" : "'".$change["override"]."'";
+				$overrideChange = empty($change["override"]) ? "NULL" : "'".myes($change["override"])."'";
 				$newDataQuery .= "(\"" . $toChange . "\",\"" . 
 					$change["address"][0] . "\",\"" .
 					$year . "\",\"" .
@@ -61,7 +65,7 @@ if (isset($_POST["data"])) {
 			if (isset($change["address"][2])) $year = $change["address"][2];
 			$toChange = $change["address"][0]. $columnIDRef[$change["address"][1]] . "_" . $year;
 			$theChange = empty($change["override"]) ? "NULL" : "'".$change["override"]."'";
-			$query .= "WHEN `unique_key` = '" . $toChange . "' THEN " . $theChange . " \n";
+			$query .= "WHEN `unique_key` = '" . myes($toChange) . "' THEN " . myes($theChange) . " \n";
 			echo "<p>Changing " . $toChange . " text override data to: <br /> ". $theChange ."</p>";
 		}
 		$query.= "ELSE `override_data` END";	
@@ -111,13 +115,13 @@ if (isset($_POST["data"])) {
 					addToQuery($thisAddition["prepend"]) . "," . 
 					addToQuery($thisAddition["append"]) . "," .
 					addToQuery($thisAddition["tabAssoc"]) . "," .
-					$theOrder[mysqli_real_escape_string($mysqli,$thisAddition["colID"])] . ")");
+					$theOrder[myes($thisAddition["colID"])] . ")");
 				
 				if ($i < count($theAdditions) - 1) $additionsQuery .= ",\n";
 				
 				$additionsQueryID .= ("(" .
 					$newColumnKey . "," .
-					addToQuery(mysqli_real_escape_string($mysqli,$thisAddition["colID"])) . ")");
+					addToQuery(myes($thisAddition["colID"])) . ")");
 					
 				if ($i < count($theAdditions) - 1) $additionsQuery .= ",\n";
 				
@@ -138,7 +142,7 @@ if (isset($_POST["data"])) {
 			for ($i=0;$i<count($theDeletions);$i++) {
 				$thisDeletion = $theDeletions[$i];
 				$thisDeletionKey = $columnIDRef[$thisDeletion];
-				$toAdd = "`column_key` = \"" . mysqli_real_escape_string($mysqli,$thisDeletionKey) . "\"";
+				$toAdd = "`column_key` = \"" . myes($thisDeletionKey) . "\"";
 				if ($i < count($theDeletions) - 1) $toAdd .= " OR ";
 				$deletionsQuery .= $toAdd;
 				$deletionsQueryID .= $toAdd;	
@@ -162,7 +166,7 @@ if (isset($_POST["data"])) {
 			$yearAddsByColKey = array();
 			for ($i=0;$i<count($yearAdds);$i++) {
 				$colKey = $columnIDRef[$yearAdds[$i][0]];
-				$yearAddsQuery .= "(\"" . ($colKey*10000 + $yearAdds[$i][1]) . "\",\"" . $yearAdds[$i][1]  . "\",\"" . $colKey . "\")";
+				$yearAddsQuery .= "(\"" . (myes($colKey)*10000 + myes($yearAdds[$i][1])) . "\",\"" . myes($yearAdds[$i][1])  . "\",\"" . myes($colKey) . "\")";
 				if ($i < count($yearAdds)-1) $yearAddsQuery .= ", ";
 				if (!array_key_exists($colKey,$yearAddsByColKey)) {
 					$yearAddsByColKey[$colKey] = array();
@@ -177,18 +181,18 @@ if (isset($_POST["data"])) {
 				sort($yearList, SORT_NUMERIC);
 				echo "for colkey: ";
 				echo $colKey;
-				$prevYearCount = mysqli_num_rows($mysqli->query("SELECT * FROM column_years WHERE `column_key` = " . $colKey));
+				$prevYearCount = mysqli_num_rows($mysqli->query("SELECT * FROM column_years WHERE `column_key` = " . myes($colKey)));
 				echo "prevYearCount: " . $prevYearCount;
 				if ($prevYearCount == 0) {
 					//Converting non-time series data to time-series data - existing data becomes associated with latest year being added
 					$year = $yearList[count($yearList)-1];
-					$dataToAlter = $mysqli->query("SELECT `state` FROM data WHERE `column_key` = \"" .$colKey. "\" AND `year` = \"0\"");
+					$dataToAlter = $mysqli->query("SELECT `state` FROM data WHERE `column_key` = \"" .myes($colKey). "\" AND `year` = \"0\"");
 					 while ($row = $dataToAlter->fetch_array(MYSQLI_ASSOC)) {
 						$yearDataUpdateQuery = "UPDATE data SET `unique_key` = \"" . 
-							($row["state"] . $colKey . "_" . $year) . "\"" . 
-							", `year` = \"".$year."\" WHERE (`year` = \"0\"
-								AND `state` = \"" . $row["state"] . 
-							"\" AND `column_key` = \"" . $colKey . "\")";
+							($row["state"] . myes($colKey) . "_" . myes($year)) . "\"" . 
+							", `year` = \"".myes($year)."\" WHERE (`year` = \"0\"
+								AND `state` = \"" . myes($row["state"]) . 
+							"\" AND `column_key` = \"" . myes($colKey) . "\")";
 						echo $yearDataUpdateQuery . "\n"; 
 						$mysqli->query($yearDataUpdateQuery);
 					 }
@@ -208,7 +212,7 @@ if (isset($_POST["data"])) {
 					$yearDelsByColKey[$colKey] = array();
 				} 
 				array_push($yearDelsByColKey[$colKey],$yearDels[$i][1]);	
-				$yearDelsQuery .= "`id` = \"" . ($colKey*10000 + $yearDels[$i][1]) . "\"";
+				$yearDelsQuery .= "`id` = \"" . myes($colKey*10000 + $yearDels[$i][1]) . "\"";
 				if ($i < count($yearDels)-1) $yearDelsQuery .= " OR ";
 			}
 			$yearDelsQuery .= ")";
@@ -216,12 +220,12 @@ if (isset($_POST["data"])) {
 			$mysqli->query($yearDelsQuery);
 			
 			foreach ($yearDelsByColKey as $colKey=>$yearList) {
-				$remainingYearCount = mysqli_num_rows($mysqli->query("SELECT * FROM column_years WHERE `column_key` = " . $colKey));
+				$remainingYearCount = mysqli_num_rows($mysqli->query("SELECT * FROM column_years WHERE `column_key` = " . myes($colKey)));
 				echo $remainingYearCount;
 				if ($remainingYearCount > 0) {
 					//Delete data
 					foreach ($yearList as $year) {
-						$yearDataDeleteQuery = "DELETE FROM data WHERE `column_key` = \"" . $colKey . "\" AND `year` = \"" . $year . "\"";
+						$yearDataDeleteQuery = "DELETE FROM data WHERE `column_key` = \"" . myes($colKey) . "\" AND `year` = \"" . myes($year) . "\"";
 						echo $yearDataDeleteQuery;
 						$mysqli->query($yearDataDeleteQuery);
 					}
@@ -234,19 +238,19 @@ if (isset($_POST["data"])) {
 						$year = $yearList[$i];
 						if ($i == count($yearList) - 1) {
 							//Latest year - keep this data
-							$dataToAlter = $mysqli->query("SELECT `state` FROM data WHERE `column_key` = \"" .$colKey. "\" AND `year` = \"" . $year . "\"");
+							$dataToAlter = $mysqli->query("SELECT `state` FROM data WHERE `column_key` = \"" .myes($colKey). "\" AND `year` = \"" . myes($year) . "\"");
 							 while ($row = $dataToAlter->fetch_array(MYSQLI_ASSOC)) {
 								$yearDataUpdateQuery = "UPDATE data SET `unique_key` = \"" . 
-									($row["state"] . $colKey . "_0") . "\"" . 
-									", `year` = \"0\" WHERE (`year` = \"" . $year . 
-									"\" AND `state` = \"" . $row["state"] . 
-									"\" AND `column_key` = \"" . $colKey . "\")";
+									(myes($row["state"]) . myes($colKey) . "_0") . "\"" . 
+									", `year` = \"0\" WHERE (`year` = \"" . myes($year) . 
+									"\" AND `state` = \"" . myes($row["state"]) . 
+									"\" AND `column_key` = \"" . myes($colKey) . "\")";
 								echo $yearDataUpdateQuery . "\n"; 
 								$mysqli->query($yearDataUpdateQuery);
 							 }
 						} else {
 							//Earlier years - discard
-							$yearDataDeleteQuery = "DELETE FROM data WHERE `column_key` = \"" . $colKey . "\" AND `year` = \"" . $year . "\"";
+							$yearDataDeleteQuery = "DELETE FROM data WHERE `column_key` = \"" . myes($colKey) . "\" AND `year` = \"" . myes($year) . "\"";
 							echo $yearDataDeleteQuery;
 							$mysqli->query($yearDataDeleteQuery);
 						}
@@ -259,7 +263,7 @@ if (isset($_POST["data"])) {
 		$theOrder = $theData["order"];
 		$orderQuery = "UPDATE columns SET `columnOrder` = CASE `column_key`\n";
 		for ($i=0;$i<count($theOrder);$i++) {
-			$orderQuery .= "WHEN \"" . $columnIDRef[$theOrder[$i]] . "\" THEN \"" . $i . "\"\n"; 
+			$orderQuery .= "WHEN \"" . myes($columnIDRef[$theOrder[$i]]) . "\" THEN \"" . $i . "\"\n"; 
 		}
 		$orderQuery .= "END";
 		
@@ -273,7 +277,7 @@ if (isset($_POST["data"])) {
 			$structureChanges = function($change) {
 				global $columnIDRef, $mysqli;
 				if ($change["address"][1]=="colID") {
-					$theQuery = "UPDATE column_ids SET `column_id` = \"" . mysqli_real_escape_string($mysqli,$change["change"]) . "\" WHERE `column_key` = " . $columnIDRef[$change["address"][0]];
+					$theQuery = "UPDATE column_ids SET `column_id` = \"" . myes($change["change"]) . "\" WHERE `column_key` = " . myes($columnIDRef[$change["address"][0]]);
 				} else {
 				$nmap = array(
 					"colID" => "id",
@@ -285,7 +289,7 @@ if (isset($_POST["data"])) {
 					"append"=>"append",
 					"tabAssoc"=>"tabAssoc"
 				);
-				$theQuery = "UPDATE columns SET `" . $nmap[$change["address"][1]] . "` = \"" . mysqli_real_escape_string($mysqli,$change["change"]) . "\" WHERE `column_key` = \"" .  $columnIDRef[$change["address"][0]] . "\"";
+				$theQuery = "UPDATE columns SET `" . myes($nmap[$change["address"][1]]) . "` = \"" . myes($change["change"]) . "\" WHERE `column_key` = \"" .  myes($columnIDRef[$change["address"][0]]) . "\"";
 				}
 				return $theQuery;
 			};

@@ -104,7 +104,7 @@ foreach ($changes as $change) {
 	$sortData = empty(mysqli_real_escape_string($mysqli,$change[1])) ? "NULL" : '"' . mysqli_real_escape_string($mysqli,$change[1]). '"';
 	$overrideData = empty(mysqli_real_escape_string($mysqli,$change[2])) ? "NULL" : '"' . mysqli_real_escape_string($mysqli,$change[2]). '"';
 	$key = mysqli_real_escape_string($mysqli,$change[0]);
-	$updateQuery = "UPDATE data SET `sort_data` = ".$sortData . ", `override_data` = ".$overrideData . " WHERE `unique_key` = \"".$key . "\"";
+	$updateQuery = "UPDATE data SET `sort_data` = ".mysqli_real_escape_string($mysqli,$sortData) . ", `override_data` = ".mysqli_real_escape_string($mysqli,$overrideData) . " WHERE `unique_key` = \"".mysqli_real_escape_string($mysqli,$key) . "\"";
 	echo $updateQuery . "<br />";
 	$queriesExecuted++;
 	$mysqli->query($updateQuery);
