@@ -927,13 +927,13 @@ try {
 				} else {
 					overrideData = theData.sort_data;
 					sortData = theData.sort_data;
-					if (theData.override_data) overrideData = theData.override_data;
 					if (colData.roundto !== null) {
 						roundFactor = Math.pow(10,colData.roundto);
 						overrideData = Math.round(overrideData*roundFactor)/roundFactor;	
 					}
 					if (colData.prepend) overrideData = colData.prepend + ("" + overrideData);
 					if (colData.append) overrideData = colData.append + ("" + overrideData);
+					if (theData.override_data) overrideData = theData.override_data;
 					$(baseSelector + " span.display").html(overrideData);
 					$(baseSelector + " span.sortData").html(sortData);
 				}

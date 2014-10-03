@@ -38,15 +38,15 @@ if (isset($_POST["data"])) {
 			$year = 0;
 			if (isset($change["address"][2])) $year = $change["address"][2];
 			$toChange = $change["address"][0] . $columnIDRef[$change["address"][1]] . "_" . $year;
-			$theChange = empty($change["actual"]) ? "NULL" : "'".$change["actual"]."'";
-			$dataExists = mysqli_num_rows($mysqli->query("SELECT `unique_key` FROM data WHERE `unique_key` = \"" . myes($toChange) . "\""));
+			$theChange = empty($change["actual"]) ? "NULL" : "'".myes($change["actual"])."'";
+			$dataExists = mysqli_num_rows($mysqli->query("SELECT `unique_key` FROM data WHERE `unique_key` = \"" . $toChange . "\""));
 			if ($dataExists > 0) {
 				$useUpdate = true;
-				$query .= "WHEN `unique_key` = '" .myes($toChange) . "' THEN " . myes($theChange) . " \n";
+				$query .= "WHEN `unique_key` = '" .$toChange . "' THEN " . $theChange . " \n";
 				echo "<p>Changing " . $toChange . " actual data to: <br /> ". $theChange."</p>";
 			} else {
 				$useInsert = true;
-				$overrideChange = empty($change["override"]) ? "NULL" : "'".myes($change["override"])."'";
+				$overrideChange = empty($change["override"]) ? "NULL" : "'".$change["override"]."'";
 				$newDataQuery .= "(\"" . $toChange . "\",\"" . 
 					$change["address"][0] . "\",\"" .
 					$year . "\",\"" .
@@ -64,8 +64,8 @@ if (isset($_POST["data"])) {
 			$year = 0;
 			if (isset($change["address"][2])) $year = $change["address"][2];
 			$toChange = $change["address"][0]. $columnIDRef[$change["address"][1]] . "_" . $year;
-			$theChange = empty($change["override"]) ? "NULL" : "'".$change["override"]."'";
-			$query .= "WHEN `unique_key` = '" . myes($toChange) . "' THEN " . myes($theChange) . " \n";
+			$theChange = empty($change["override"]) ? "NULL" : "'".myes($change["override"])."'";
+			$query .= "WHEN `unique_key` = '" . $toChange . "' THEN " . $theChange . " \n";
 			echo "<p>Changing " . $toChange . " text override data to: <br /> ". $theChange ."</p>";
 		}
 		$query.= "ELSE `override_data` END";	

@@ -84,6 +84,7 @@ var sfp_admin = function() {
 			var actual_tds = $("#dataTable td #input_actual_" + col_id);
 			var actual_value;
 			var display_value;
+			var override_value;
 			var displayTd;
 			var parentTr;
 			var attrs = sfp_admin.getAttrs(col_id);
@@ -91,8 +92,11 @@ var sfp_admin = function() {
 				actual_value = $(actual_tds[i]).val();
 				display_value = sfpdashboard_shared_functions.formatData(attrs,actual_value);
 				parentTr = $(actual_tds[i]).parents("#dataTable tr.state");
+				override_value = $(parentTr).find("td #input_override_" + col_id).first().val();
+				console.log(override_value);
 				displayTd = $(parentTr).children("td.display[data-id=\""+col_id+"\"]");
-				$(displayTd).html(display_value);
+				if (override_value == "") $(displayTd).html(display_value);
+				else $(displayTd).html(override_value);
 			}
 		},
 		writeData: function(state,col_id) {
