@@ -395,4 +395,35 @@ div.dataDisplayArea div.tableArea div.mainTableArea table td{
 	
 }
 
+.barChartGraphic {
+	position:relative;
+	top:100px;
+	margin-left:auto;
+	margin-right:auto;
+	height:600px;
+	width:700px;
+	background-color:#fff;	
+}
+
+#chartGraphicContainer .barChartGraphicFlotCanvas {
+	margin:2%;
+	margin-top:7%;
+	width:96%;
+	height:91%;
+	position:absolute;
+}
+
+#chartGraphicContainer .barChartGraphicTitle {
+	width:100%;
+	position:absolute;
+	top:0px;
+	left:0px;	
+}
+
+#chartGraphicContainer .barChartGraphicTitle h3{
+	text-align:center;	
+	font-family:"myriad-pro-condensed",sans-serif;
+	font-size:20px;
+	color:#000
+}
 

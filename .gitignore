@@ -5,3 +5,4 @@ mockup.html
 *.png
 Thumbs.db
 PHPExcel/
+flot/*
