@@ -1,10 +1,14 @@
 <?php
 include("config.php"); 
 
-$colkey = $_GET["col"];
-$year = $_GET["year"];
+if (array_key_exists("col",$_GET)) $colkey = $_GET["col"];
+if (array_key_exists("year",$_GET)) $year = $_GET["year"];
+if (array_key_exists("state",$_GET)) $state = $_GET["state"];
 
-$dataQuery = "SELECT `state`,`column_key`,`sort_data`,`override_data` FROM data WHERE column_key = \"" . $colkey . "\" AND year = \"" . $year . "\"";
+$dataQuery = "SELECT `state`,`column_key`,`sort_data`,`override_data`,`year` FROM data ";
+if (isset($colkey)) $dataQuery .= "WHERE column_key = \"" . $colkey . "\" ";
+if (isset($year)) $dataQuery .=  "AND year = \"" . $year . "\" ";
+if (isset($state)) $dataQuery .=  "AND state = \"" . $state . "\"";
 $mysqli = new mysqli(DB_SERVER,DB_USER,DB_PASSWORD,DB_DATABASE);
 $mysqli->set_charset("utf8");
 

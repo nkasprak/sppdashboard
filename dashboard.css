@@ -395,6 +395,25 @@ div.dataDisplayArea div.tableArea div.mainTableArea table td{
 	
 }
 
+.barChartButton {
+	width:16px;
+	height:16px;
+	padding:0px;
+	margin:0px;
+	background-image:url(barchart.png);	
+}
+
+.lineChartButton {
+	width:14px;
+	height:14px;
+	padding:0px;
+	margin:0px;
+	background-image:url(linechart.png);
+	display:inline-block;
+	cursor:pointer;	
+	
+}
+
 .barChartGraphic {
 	position:relative;
 	top:100px;

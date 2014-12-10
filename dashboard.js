@@ -807,7 +807,8 @@ try {
 				return footersNeedCalculation;	
 			},
 			
-			makeBarChart: function(dataset) {
+			makeBarChart: function(parms,mode) {
+				var dataset = parms.dataset;
 				$("body").append($("<div id='backgroundOverlay' style='background-color:#000;opacity:0.2;height:100%;width:100%;position:absolute;top:0px;left:0px'></div>"));
 				$("body").append($("<div id='chartGraphicContainer' style='background-color:transparent;height:100%;width:100%;position:absolute;top:0px;left:0px'></div>"));
 				$("#chartGraphicContainer").append($("<div class='barChartGraphic'>"));
@@ -815,52 +816,92 @@ try {
 				$("#chartGraphicContainer .barChartGraphic").append("<div class='barChartGraphicFlotCanvas'>");
 				var barChartData = {};
 				var columnData = $(".topTableArea table td." + dataset).data();
-				console.log(columnData);
-				$.each($(".mainTableArea table tr td." + dataset + " span.sortData"),function() {
-					if ($(this).parents("td").first().is(":visible")) {
-						var stateCode = $(this).parents("tr").first()[0].className.split(/\s+/)[0];
-						barChartData[stateCode] = $(this).text();
-					}
-				});
-				var flotifyData = function(data) {
-					var i=0, returnData = [], returnTicks = [];
-					for (state in barChartData) {
-						returnData[i] = [barChartData[state]*1,50-i-0.25];
-						returnTicks[i] = [50-i,state];
-						i++;
-					}
-					return {data: returnData, ticks:returnTicks};
-				};
-				var d=flotifyData(barChartData);
-				console.log(d);
-				var chartOptions = {
-					yaxis: {
-						ticks: d.ticks,
-						tickLength:0
-					},
-					xaxis: {
-						tickFormatter: function(t) {
-							t = Math.round(t*Math.pow(10,columnData.roundto))/Math.pow(10,columnData.roundto);
-							if (columnData.prepend) t = columnData.prepend + t;
-							if (columnData.append) t = t + columnData.append;
-							return t;
-						},
-					},
-					series: {
-						bars: {
-							show: true,
-							horizontal: true,
-							barWidth:0.5,
-							fill:1,
-							stroke:0	
+				if (mode == "allStatesOneYear") {
+					$.each($(".mainTableArea table tr td." + dataset + " span.sortData"),function() {
+						if ($(this).parents("td").first().is(":visible")) {
+							var stateCode = $(this).parents("tr").first()[0].className.split(/\s+/)[0];
+							if ($(this).text() != "") barChartData[stateCode] = $(this).text();
 						}
-					},
-					grid: {
-						borderWidth:0
-					},
-					colors: ["#0081a4" ]
+					});
+					var flotifyData = function(data) {
+						var i=0, returnData = [], returnTicks = [];
+						for (state in barChartData) {
+							returnData[i] = [barChartData[state]*1,50-i-0.25];
+							returnTicks[i] = [50-i,state];
+							i++;
+						}
+						return {data: returnData, ticks:returnTicks};
+					};
+					var d=flotifyData(barChartData);
+					var chartOptions = {
+						yaxis: {
+							ticks: d.ticks,
+							tickLength:0
+						},
+						xaxis: {
+							tickFormatter: function(t) {
+								t = Math.round(t*Math.pow(10,columnData.roundto))/Math.pow(10,columnData.roundto);
+								if (columnData.prepend) t = columnData.prepend + t;
+								if (columnData.append) t = t + columnData.append;
+								return t;
+							},
+						},
+						series: {
+							bars: {
+								show: true,
+								horizontal: true,
+								barWidth:0.5,
+								fill:1,
+								stroke:0	
+							}
+						},
+						grid: {
+							borderWidth:0
+						},
+						colors: ["#0081a4" ]
+					}
+					sfpDashboard.activeChart = $.plot($("#chartGraphicContainer .barChartGraphicFlotCanvas"),[{data:d.data}],chartOptions);
+				} else {
+					var url = "getDataSubset.php?col=" + parms.colkey + "&state=" + parms.state;
+					var stateName = $(".leftTableArea tr." + parms.state + " td").first().text();
+					$("#chartGraphicContainer .barChartGraphic .barChartGraphicTitle h3").prepend(stateName + ": ");
+					$.get(url,function(data) {
+						var flotifyData = function(d) {
+							var i = 0,returnData = [],returnTicks=[];
+							for (i=0;i<d.data.length;i++) {
+								returnData[i] = [d.data[i].year,d.data[i].sort_data];	
+							}
+							return returnData;
+						}
+						var d = flotifyData(data);
+						var chartOptions = {
+							yaxis: {
+								tickFormatter: function(t) {
+									t = Math.round(t*Math.pow(10,columnData.roundto))/Math.pow(10,columnData.roundto);
+									if (columnData.prepend) t = columnData.prepend + t;
+									if (columnData.append) t = t + columnData.append;
+									return t;
+								},
+								min:0
+							},
+							xaxis: {
+								minTickSize:1,
+								tickFormatter: function(y) {
+									return Math.round(y) + "";	
+								}
+							},
+							series: {
+								shadowSize:0
+							},
+							grid: {
+								borderWidth:0
+							},
+							colors: ["#0081a4" ]
+								
+						}
+						sfpDashboard.activeChart = $.plot($("#chartGraphicContainer .barChartGraphicFlotCanvas"),[{data:d}],chartOptions);
+					});
 				}
-				sfpDashboard.activeChart = $.plot($("#chartGraphicContainer .barChartGraphicFlotCanvas"),[{data:d.data}],chartOptions);
 				
 			},
 			
@@ -921,6 +962,8 @@ try {
 					},5);
 				}
 				
+				$("#backgroundOverlay").css("top",scrollTop + "px");
+				$("#chartGraphicContainer").css("top",scrollTop + "px");
 			}
 		},50);
 	});
@@ -1000,6 +1043,7 @@ try {
 					if (theData.override_data) overrideData = theData.override_data;
 					$(baseSelector + " span.display").html(overrideData);
 					$(baseSelector + " span.sortData").html(sortData);
+					if (colData.mode == "numeric") $(baseSelector).append(" <div class='lineChartButton'></div>");
 				}
 			}
 			sfpDashboard.fillFooter(tab);
@@ -1068,9 +1112,19 @@ try {
 		sfpDashboard.fillAllFooters();
 	});
 	
-	$(".barChart").click(function(e) {
+	$(".barChartButton").click(function(e) {
 		e.stopPropagation();
-		sfpDashboard.makeBarChart($(this).parents("td")[0].className);
+		sfpDashboard.makeBarChart({dataset:$(this).parents("td")[0].className},"allStatesOneYear");
+		$(window).trigger("scroll");
+	});
+	
+	$(".mainTableArea td").on("click",".lineChartButton",function(e) {
+		e.stopPropagation();
+		var id = $(this).parents("td").first()[0].className;
+		var state = $(this).parents("tr").first()[0].className.split(/\s+/)[0];
+		var colkey = $(".topTableArea td." + id).data("column_key");
+		sfpDashboard.makeBarChart({state:state,dataset:id,colkey:colkey},"oneStateAllYears");
+		$(window).trigger("scroll");
 	});
 	
 	$("body").on("click","#chartGraphicContainer",function(e) {

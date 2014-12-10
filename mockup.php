@@ -146,7 +146,9 @@
 												if (array_key_exists($column["column_key"],$yearsArr)) {
 													$tdAttrString .= yearSelector($column["column_key"]);
 												}
-												$tdAttrString .= "<span class='longName'>" . $column['longName']."</span><br /><button class='barChart'>Chart</button><button class='map'>Map</button></td>\n";
+												$tdAttrString .= "<span class='longName'>" . $column['longName']."</span>";
+												if ($column['mode'] == "numeric") $tdAttrString .= " <div class='barChartButton'></div></td>\n";
+												else $tdAttrString .= "<br />&nbsp;</td>\n";
 												echo $tdAttrString;
 											}
                                         }
@@ -237,7 +239,12 @@
 											}
 											
 											/*Write the table cell (with class of the column id)*/
-											echo '<td class="'.$cid.'"' . ($column["mode"] == "numeric" ? ' align="right"' : "") . '><span class="display">' . $data["display_data"] ."</span>". (empty($data["sort_data"]) ? "" : "<span class='sortData'>".$data["sort_data"]."</span>" ) . "</td>\n";
+											echo '<td class="'.$cid.'"' . ($column["mode"] == "numeric" ? ' align="right"' : "") . '>';
+											echo '<span class="display">' . $data["display_data"] ."</span>". (empty($data["sort_data"]) ? "" : "<span class='sortData'>".$data["sort_data"]."</span>" );
+											if ($column["mode"]=="numeric" && array_key_exists($column["column_key"],$yearsArr) && $data["display_data"] != "") {
+												echo " <div class='lineChartButton'></div>";
+											};
+											echo "</td>\n";
 										}
                                     }
                                     echo "</tr>\n";
