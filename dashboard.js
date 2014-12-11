@@ -863,7 +863,7 @@ try {
 					sfpDashboard.activeChart = $.plot($("#chartGraphicContainer .barChartGraphicFlotCanvas"),[{data:d.data}],chartOptions);
 				} else {
 					var url = "getDataSubset.php?col=" + parms.colkey + "&state=" + parms.state;
-					var stateName = $(".leftTableArea tr." + parms.state + " td").first().text();
+					var stateName = $(".leftTableArea tr." + parms.state + " td span.state").first().text();
 					$("#chartGraphicContainer .barChartGraphic .barChartGraphicTitle h3").prepend(stateName + ": ");
 					$.get(url,function(data) {
 						var flotifyData = function(d) {

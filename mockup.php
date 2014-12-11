@@ -102,7 +102,7 @@
 							/*Output cells of the left frozen table (state names) - class name will be the two letter state code*/
 							$initialSortTracker = 0;
 							foreach ($statesArr as $id=>$state) { ?>
-								<tr class=<?php echo $id; ?>><td><?php echo $state;?></td></tr>
+								<tr class=<?php echo $id; ?>><td><span class="state"><?php echo $state;?></span></td></tr>
 								<?php $initialSortTracker++; 
 							} ?>
                             </tbody>
