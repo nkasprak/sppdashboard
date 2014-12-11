@@ -815,7 +815,7 @@ try {
 				$("#chartGraphicContainer .barChartGraphic").append("<div class='barChartGraphicTitle'><h3>" + $(".topTableArea table td." + dataset + " span.longName").text() + "</h3></div>");
 				$("#chartGraphicContainer .barChartGraphic").append("<div class='barChartGraphicFlotCanvas'>");
 				var barChartData = {};
-				var columnData = $(".topTableArea table td." + dataset).data();
+				var columnData = $(".topTableArea table td." + dataset);
 				if (mode == "allStatesOneYear") {
 					$.each($(".mainTableArea table tr td." + dataset + " span.sortData"),function() {
 						if ($(this).parents("td").first().is(":visible")) {
@@ -840,9 +840,9 @@ try {
 						},
 						xaxis: {
 							tickFormatter: function(t) {
-								t = Math.round(t*Math.pow(10,columnData.roundto))/Math.pow(10,columnData.roundto);
-								if (columnData.prepend) t = columnData.prepend + t;
-								if (columnData.append) t = t + columnData.append;
+								t = Math.round(t*Math.pow(10,columnData.data("roundto")))/Math.pow(10,columnData.data("roundto"));
+								if (columnData.data("prepend")) t = columnData.data("prepend") + t;
+								if (columnData.data("append")) t = t + columnData.data("append");
 								return t;
 							},
 						},
@@ -877,9 +877,9 @@ try {
 						var chartOptions = {
 							yaxis: {
 								tickFormatter: function(t) {
-									t = Math.round(t*Math.pow(10,columnData.roundto))/Math.pow(10,columnData.roundto);
-									if (columnData.prepend) t = columnData.prepend + t;
-									if (columnData.append) t = t + columnData.append;
+									t = Math.round(t*Math.pow(10,columnData.data("roundto")))/Math.pow(10,columnData.data("roundto"));
+									if (columnData.data("prepend")) t = columnData.data("prepend") + t;
+									if (columnData.data("append")) t = t + columnData.data("append");
 									return t;
 								},
 								min:0

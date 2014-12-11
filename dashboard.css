@@ -23,6 +23,10 @@ body div {
 	box-sizing:border-box;	
 }
 
+td {
+	white-space:nowrap;	
+}
+
 div#wrapper, div#ie7 {
 	min-width:940px;
 	width:98%;
