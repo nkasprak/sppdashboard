@@ -365,7 +365,13 @@ div.dataDisplayArea div.tableArea table td{
 div.dataDisplayArea div.tableArea div.topTableArea td {
 	vertical-align:bottom;
 	padding:2px;
-	
+}
+
+div.dataDisplayArea div.tableArea div.topTableArea td select {
+	font-family:"myriad-pro-condensed";
+	font-weight:bold;
+	color:#003768;
+	font-size:16px;
 }
 
 div.dataDisplayArea div.tableArea div.mainTableArea .tableWrapper {
@@ -432,7 +438,7 @@ div.dataDisplayArea div.tableArea div.mainTableArea table td{
 	margin:2%;
 	margin-top:7%;
 	width:96%;
-	height:91%;
+	height:90%;
 	position:absolute;
 }
 
@@ -448,5 +454,26 @@ div.dataDisplayArea div.tableArea div.mainTableArea table td{
 	font-family:"myriad-pro-condensed",sans-serif;
 	font-size:20px;
 	color:#000
+}
+
+
+#backgroundOverlay {
+	background-color:#000;
+	opacity:0.2;
+	-ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=20)";
+	height:100%;
+	width:100%;
+	position:absolute;
+	top:0px;
+	left:0px	
+}
+
+#chartGraphicContainer {
+	background-color:transparent;
+	height:100%;
+	width:100%;
+	position:absolute;
+	top:0px;
+	left:0px	
 }
 

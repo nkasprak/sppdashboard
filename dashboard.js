@@ -32,7 +32,7 @@ try {
 		//storage for tasks to run every second
 		var periodicTasks = {};
 		var periodicTimer = setInterval(function() {
-			for (task in periodicTasks) {
+			for (var task in periodicTasks) {
 				try {
 					periodicTasks[task]();
 				} catch (ex) {
@@ -47,7 +47,7 @@ try {
 		one table. The following two functions synchronize the height/widths of the cells of the main table with 
 		the left state names table and the top column names table. They are called using the public function
 		syncCellCize()*/
-		privateSyncWidths = function() {
+		var privateSyncWidths = function() {
 			var accWidth = 0; //"accumulated width" - div wrapper around the table will be set to this
 			$("th, td").removeAttr("width"); //reset existing width attributes
 			
@@ -82,7 +82,7 @@ try {
 			$("#tabBodies .tab" + activeTab + " .topTableArea .tableWrapper").width(accWidth+300);
 		};
 		
-		privateSyncHeights = function() {
+		var privateSyncHeights = function() {
 			/*This is all basically the same as the syncWidths function, but no need to track accumulated
 			height because the scrolling behaves a bit differently.*/
 			$("th, td").removeAttr("height");
@@ -99,13 +99,13 @@ try {
 		
 		/*This is assigned to the "table of contents" <li>s click event in the activateQuestionList() function.
 		Gets the column id from the <li> class and triggers the scroll function.*/
-		qListClick = function() {
+		var qListClick = function() {
 			var id = this.className;
 			sfpDashboard.scrollToColumn(id);
 		};
 		
 		/*Returns the column number of a particular column id. Used here and there.*/
-		returnColIndex = function(col_id) {
+		var returnColIndex = function(col_id) {
 			var tabOfCol = getColumnDataAttr(col_id,"tabAssoc");
 			var tds = $($("#tabBodies .tab" + tabOfCol + " .mainTableArea table tbody tr")[0]).children("td");
 			for (var i = 0;i<tds.length;i++) {
@@ -117,7 +117,7 @@ try {
 		/*In HTML5 you can store data in arbitrary attributes with the "data-" prefix. I find this
 		very useful. This function extracts column metadata from the <td> elements of the first row of the top header table,
 		where I've stored it.*/
-		getColumnDataAttr = function(col_id,attr) {
+		var getColumnDataAttr = function(col_id,attr) {
 			var currentTab;
 			var value;
 			for (var i = 0;i<$("#tabBodies .tabBody").length;i++) {
@@ -128,7 +128,7 @@ try {
 		};
 		
 		/*Used in handling dates in some columns. Returns the number of days into the year of a particular date.*/
-		daysIntoYear = function(month,days) {
+		var daysIntoYear = function(month,days) {
 			month = month*1;
 			var months = [0,31,28,31,30,31,30,31,31,30,31,30,31];
 			var rVal = 0;
@@ -481,7 +481,7 @@ try {
 				/*Loop through relevant DOM elements and extract the necessary data*/
 				var filterArray = function() {
 					var comparisons = [];
-					var lis = $("#tabBodies .tab" + tab_id + " ul.filters li");
+					var lis = $("#tabBodies .tab" + tab_id + " ul.filters li"), li, privFilterBy, privCompare, privValue, privMonth, privDay, privUseDate;
 					for (var i = 0; i<lis.length-1; i++) {
 						li = lis[i];
 						privFilterBy = $(li).children("select.filterBy").val();
@@ -505,6 +505,7 @@ try {
 				/*Generalized comparison function to check if a filter applies to a particular row.
 				cVal is the value of the cell, fVal is the value of the filter.*/
 				var comparor = function(cVal,filterObj) {
+					var fVal;
 					if (filterObj.useDate) {
 						fVal = daysIntoYear(filterObj.month,filterObj.day);
 					} else {
@@ -530,10 +531,7 @@ try {
 				var mainTableTrs = $("#tabBodies .tabBody .mainTableArea table tbody tr");
 				
 				/*Loop through the table rows*/
-				var state;
-				var tr;
-				var showRow;
-				var cValue;
+				var state, tr, showRow, cValue, colId;
 				for (var i = 0;i<mainTableTrs.length;i++) {
 					tr = mainTableTrs[i];
 					
@@ -735,7 +733,7 @@ try {
 				var mode;
 				var tds;
 				var col_id;
-				var quantity;
+				var quantity, formattedQuantity;
 				var roundMultiplier;
 				for (var i = 0;i<footerTrs.length;i++) {
 					tr = $(footerTrs[i]);
@@ -763,10 +761,10 @@ try {
 							append: getColumnDataAttr(col_id,"append")
 						}
 						
-						quantity = sfpdashboard_shared_functions.formatData(attrs,quantity);
+						formattedQuantity = sfpdashboard_shared_functions.formatData(attrs,quantity);
 						
 						//write it to the table
-						$(tds[j]).html(quantity);
+						$(tds[j]).html("<span class='sortData'>" +quantity+"</span><span class='display'>" + formattedQuantity+"</span>");
 					}
 				}
 				
@@ -809,8 +807,8 @@ try {
 			
 			makeBarChart: function(parms,mode) {
 				var dataset = parms.dataset;
-				$("body").append($("<div id='backgroundOverlay' style='background-color:#000;opacity:0.2;height:100%;width:100%;position:absolute;top:0px;left:0px'></div>"));
-				$("body").append($("<div id='chartGraphicContainer' style='background-color:transparent;height:100%;width:100%;position:absolute;top:0px;left:0px'></div>"));
+				$("body").append($("<div id='backgroundOverlay'></div>"));
+				$("body").append($("<div id='chartGraphicContainer'></div>"));
 				$("#chartGraphicContainer").append($("<div class='barChartGraphic'>"));
 				$("#chartGraphicContainer .barChartGraphic").append("<div class='barChartGraphicTitle'><h3>" + $(".topTableArea table td." + dataset + " span.longName").text() + "</h3></div>");
 				$("#chartGraphicContainer .barChartGraphic").append("<div class='barChartGraphicFlotCanvas'>");
@@ -820,22 +818,30 @@ try {
 					$.each($(".mainTableArea table tr td." + dataset + " span.sortData"),function() {
 						if ($(this).parents("td").first().is(":visible")) {
 							var stateCode = $(this).parents("tr").first()[0].className.split(/\s+/)[0];
+							if (stateCode=="row_high" || stateCode == "row_low") return false;
+							if (stateCode == "row_median") stateCode = "Median";
+							if (stateCode == "row_average") stateCode = "Mean";
 							if ($(this).text() != "") barChartData[stateCode] = $(this).text();
 						}
 					});
 					var flotifyData = function(data) {
-						var i=0, returnData = [], returnTicks = [];
-						for (state in barChartData) {
-							returnData[i] = [barChartData[state]*1,50-i-0.25];
+						var i=0, returnData = [], returnTicks = [],footerReturnData = [], footerReturnTicks = [],tData,tTick;
+						for (var state in barChartData) {
+							tData =  [barChartData[state]*1,50-i-0.25];
 							returnTicks[i] = [50-i,state];
+							if (state != "Median" && state != "Mean") {
+								returnData[i] = tData;
+							} else {
+								footerReturnData[i] = tData;
+							}
 							i++;
 						}
-						return {data: returnData, ticks:returnTicks};
+						return [{data: returnData, ticks:returnTicks},{data: footerReturnData}];
 					};
 					var d=flotifyData(barChartData);
 					var chartOptions = {
 						yaxis: {
-							ticks: d.ticks,
+							ticks: d[0].ticks,
 							tickLength:0
 						},
 						xaxis: {
@@ -858,9 +864,9 @@ try {
 						grid: {
 							borderWidth:0
 						},
-						colors: ["#0081a4" ]
+						colors: ["#0081a4","#eb9123" ]
 					}
-					sfpDashboard.activeChart = $.plot($("#chartGraphicContainer .barChartGraphicFlotCanvas"),[{data:d.data}],chartOptions);
+					sfpDashboard.activeChart = $.plot($("#chartGraphicContainer .barChartGraphicFlotCanvas"),[{data:d[0].data},{data:d[1].data}],chartOptions);
 				} else {
 					var url = "getDataSubset.php?col=" + parms.colkey + "&state=" + parms.state;
 					var stateName = $(".leftTableArea tr." + parms.state + " td span.state").first().text();

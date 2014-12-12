@@ -27,7 +27,9 @@
 <script type="text/javascript" src="jquery.tablesorter.min.js"></script>
 <script type="text/javascript" src="shared.js"></script>
 <script type="text/javascript" src="dashboard.js"></script>
+<script type="text/javascript" src="flot/excanvas.min.js"></script>
 <script type="text/javascript" src="flot/jquery.flot.min.js"></script>
+
 
 <?php include("dashboard.php"); //Pulls data from database and organizes it into associative arrays ?>
 
@@ -144,7 +146,7 @@
 												} 
 												$tdAttrString .= ' class="'.$id.'">';
 												if (array_key_exists($column["column_key"],$yearsArr)) {
-													$tdAttrString .= yearSelector($column["column_key"]);
+													$tdAttrString .= yearSelector($column["column_key"]) . " ";
 												}
 												$tdAttrString .= "<span class='longName'>" . $column['longName']."</span>";
 												if ($column['mode'] == "numeric") $tdAttrString .= " <div class='barChartButton'></div></td>\n";
