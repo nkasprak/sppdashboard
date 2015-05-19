@@ -218,15 +218,37 @@ if ($mode === "all") {
 		$r->nl();
 	}
 	
+	//print_r($dataSeries);
+	
 	foreach ($dataSeries as $seriesName=>$series) {
 		
 		foreach ($series as $year=>$data) {
 		
 			if ($year === "No Year") $year = 0;
-			$newQuery = "INSERT INTO data (unique_key,state,year,column_key,sort_data,override_data) VALUES (";
 			$key = $state . $colIDtoColKey[$seriesName] . "_" . $year;
-			$newQuery .= "'".$key . "','" . $state . "','" . $year . "','" . $colIDtoColKey[$seriesName] . "','" . $data["actual"] . "','" . $data["override"] . "')";
-			echo $newQuery;
+			$roleList = array("unique_key"=>$key,"state"=>$state,"year"=>$year,"column_key"=>$colIDtoColKey[$seriesName],"sort_data"=>$data["actual"],"override_data"=>$data["override"]);
+			$newQuery = "INSERT INTO data (";
+			foreach ($roleList as $roleName=>$roleData) {
+				$newQuery .= $roleName . ",";	
+			}
+			$newQuery = rtrim($newQuery,",");
+			$newQuery .= ") VALUES (";
+			foreach ($roleList as $roleName=>$roleData) {
+				$newQuery .= "'".mysqli_real_escape_string($mysqli,$roleData) . "',";	
+			}
+			$newQuery = rtrim($newQuery,",");
+			$newQuery .= ") ON DUPLICATE KEY UPDATE ";
+			foreach ($roleList as $roleName=>$roleData) {
+				if ($roleName !== "unique_key" && !empty($roleData)) {
+					$newQuery .= "`" . $roleName . "`='".mysqli_real_escape_string($mysqli,$roleData) . "', ";
+				}
+			}
+			$newQuery = rtrim($newQuery,", ");
+			if (!empty($data["actual"]) || !empty($data["override"])) {
+				$mysqli->query($newQuery);
+				echo $newQuery;
+			}
+			
 		}
 		
 	}
