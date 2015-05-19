@@ -50,12 +50,19 @@
             <div id="introText">
             <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
             </div><!--end div#introText-->
+            <div id="tabWrapper">
             
             <ul id="tabs">
-            <?php for ($tabIndex = $lowTab;$tabIndex<=$highTab;$tabIndex++) {
-				echo '<li class="tab" id="tabPicker'.$tabIndex.'">'.$tabsArr[$tabIndex]["title"]."</li>\n";
+            <?php for ($tabIndex = 0;$tabIndex<count($tabsArr);$tabIndex++) {
+				echo '<li class="tab" id="tabPicker'.$tabsArr[$tabIndex]["tab_id"]. '">'.$tabsArr[$tabIndex]["title"]."</li>\n";
 			} ?>
             </ul><!--end ul#tabs-->
+            
+            </div>
+            <div id="tabScroller">
+            	<div class="tabScroll left"> &lt;-- Left </div>
+            	<div class="tabScroll right"> Right --&gt; </div>
+            </div>
         </div> <!--end div.blue-->
         <div id="tabBodies">
         	<?php for ($tabIndex = $lowTab;$tabIndex<=$highTab;$tabIndex++) : /*Loop through each tab and create separate data display areas for each*/?>
@@ -231,6 +238,9 @@
 															$data["display_data"] = $column["prepend"] . abs($data["display_data"]);
 														}
 													}
+													if (!empty($column["append"])) {
+														$data["display_data"] .= $column["append"];	
+													}
 												}
 												
 												if (!empty($data["override_data"])) $data["display_data"] = $data["override_data"];
@@ -242,7 +252,7 @@
 											
 											/*Write the table cell (with class of the column id)*/
 											echo '<td class="'.$cid.'"' . ($column["mode"] == "numeric" ? ' align="right"' : "") . '>';
-											echo '<span class="display">' . $data["display_data"] ."</span>". (empty($data["sort_data"]) ? "" : "<span class='sortData'>".$data["sort_data"]."</span>" );
+											echo '<span class="display">' . $data["display_data"] ."</span>". (is_null($data["sort_data"]) ? "" : "<span class='sortData'>".$data["sort_data"]."</span>" );
 											if ($column["mode"]=="numeric" && array_key_exists($column["column_key"],$yearsArr) && $data["display_data"] != "") {
 												echo " <div class='lineChartButton'></div>";
 											};

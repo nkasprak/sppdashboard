@@ -41,6 +41,10 @@ try {
 			}
 		},5000);
 		
+		var tabIsScrollingRight = false;
+		var tabIscrollingLeft = false;
+		var tabScrollingTimer;
+		
 		//private functions follow
 		
 		/*The "Freeze panes" - like behavior is accomplished through having three separate tables that look like
@@ -883,7 +887,11 @@ try {
 						var chartOptions = {
 							yaxis: {
 								tickFormatter: function(t) {
-									t = Math.round(t*Math.pow(10,columnData.data("roundto")))/Math.pow(10,columnData.data("roundto"));
+									var roundTo = 0;
+									if (typeof(columnData.data("roundto")) !== "undefined") {
+										roundTo = columnData.data("roundto");
+									}
+									t = Math.round(t*Math.pow(10,roundTo))/Math.pow(10,roundTo);
 									if (columnData.data("prepend")) t = columnData.data("prepend") + t;
 									if (columnData.data("append")) t = t + columnData.data("append");
 									return t;
@@ -916,6 +924,29 @@ try {
 				$("#chartGraphicContainer").remove();
 				$("#backgroundOverlay").remove();
 				sfpDashboard.activeChart = null;
+			},
+			
+			tabScrollRightOn: function() {
+				tabIsScrollingRight = true;
+				clearInterval(tabScrollingTimer);
+				tabScrollingTimer = setInterval(function() {
+					$("#tabWrapper").scrollLeft($("#tabWrapper").scrollLeft() + 30);
+				},100);
+			},
+			tabScrollLeftOn: function() {
+				tabIsScrollingLeft = true;
+				clearInterval(tabScrollingTimer);
+				tabScrollingTimer = setInterval(function() {
+					$("#tabWrapper").scrollLeft($("#tabWrapper").scrollLeft() - 30);
+				},100);
+			},
+			tabScrollRightOff: function() {
+				tabIsScrollingRight = false;
+				clearInterval(tabScrollingTimer);
+			},
+			tabScrollLeftOff: function() {
+				tabIsScrollingLeft = false;
+				clearInterval(tabScrollingTimer);
 			},
 		}
 	}();
@@ -1040,12 +1071,15 @@ try {
 				} else {
 					overrideData = theData.sort_data;
 					sortData = theData.sort_data;
-					if (colData.roundto !== null) {
-						roundFactor = Math.pow(10,colData.roundto);
-						overrideData = Math.round(overrideData*roundFactor)/roundFactor;	
+					if (typeof(colData.roundto) !== "undefined") {
+						if (colData.roundto !== null) {
+							roundFactor = Math.pow(10,colData.roundto);
+							overrideData = Math.round(overrideData*roundFactor)/roundFactor;	
+						}
 					}
+					
 					if (colData.prepend) overrideData = colData.prepend + ("" + overrideData);
-					if (colData.append) overrideData = colData.append + ("" + overrideData);
+					if (colData.append) overrideData = ("" + overrideData) + colData.append;
 					if (theData.override_data) overrideData = theData.override_data;
 					$(baseSelector + " span.display").html(overrideData);
 					$(baseSelector + " span.sortData").html(sortData);
@@ -1140,6 +1174,22 @@ try {
 	
 	$("body").on("click","#chartGraphicContainer .barChartGraphic",function(e) {
 		e.stopPropagation();
+	});
+	
+	$("#tabScroller .left").on("mouseenter", function(e) {
+		sfpDashboard.tabScrollLeftOn();
+	});
+	
+	$("#tabScroller .right").on("mouseenter", function(e) {
+		sfpDashboard.tabScrollRightOn();
+	});
+	
+	$("#tabScroller .left").on("mouseleave", function(e) {
+		sfpDashboard.tabScrollLeftOff();
+	});
+	
+	$("#tabScroller .right").on("mouseleave", function(e) {
+		sfpDashboard.tabScrollRightOff();
 	});
 	
 	//recalculate layout on window resize

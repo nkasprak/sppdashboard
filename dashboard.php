@@ -28,10 +28,12 @@ while ($row = $columnsResult->fetch_array(MYSQLI_ASSOC)) {
 	$columnsArr[$columnIDArr[$row["column_key"]]]["column_key"] = $row["column_key"];
 }
 
-$tabsResult = $mysqli->query("SELECT * FROM tabs");
+$tabsResult = $mysqli->query("SELECT * FROM tabs ORDER BY `tab_order`");
+$tabRevOrder = array();
 while ($row = $tabsResult->fetch_array(MYSQLI_ASSOC)) {
-	$tabsArr[$row["tab_id"]] = $row;	
+	$tabsArr[$row["tab_order"]] = $row;	
 	array_push($tabBounds,$row["tab_id"]); /*Will use to keep track of max/min tabs ids*/
+	$tabRevOrder[$row["tab_id"]] = $row["tab_order"];
 }
 
 $yearsResult = $mysqli->query("SELECT * FROM column_years");
@@ -63,8 +65,9 @@ $highTab = max($tabBounds);
 
 /*Sorts columns by tab first, then order within tab second*/
 uasort($columnsArr, function($a,$b) {
+	global $tabRevOrder;
 	if ($a["tabAssoc"] == $b["tabAssoc"]) return $a["columnOrder"] - $b["columnOrder"];
-	else return $a["tabAssoc"] - $b["tabAssoc"];
+	else return $tabRevOrder[$a["tabAssoc"]] - $tabRevOrder[$b["tabAssoc"]];
 });
 
 /*Used in various places to output column <option> elements into selectors*/

@@ -74,7 +74,7 @@ div#header img{
 div.blue {
 
 	
-	padding-bottom:2em;
+	/*padding-bottom:2em;*/
 	position:relative;
 }
 
@@ -87,8 +87,42 @@ div#introText {
 	
 }
 
+#tabWrapper {
+	position:relative;
+	width:100%;
+	overflow:hidden;
+	height:2em;	
+}
+
+#tabScroller {
+	position:relative;
+	height:0px;
+}
+
+#tabScroller .tabScroll {
+	position:absolute;
+	height:2em;
+	width:100px;
+	background-color:#fff;
+	opacity:0;
+	padding:3px;
+	font-size:14px;	
+	cursor:pointer;
+}
+
+#tabScroller .tabScroll.left {
+	left:0px;
+	top:-20px;	
+}
+
+#tabScroller .tabScroll.right {
+	right:0px;
+	top:-20px;	
+}
+
 ul#tabs {
 	height:2em;
+	width:auto;
 	padding:5px 5px 0px 5px;	
 	list-style-type:none;
 	margin:0px;
@@ -97,13 +131,14 @@ ul#tabs {
 	left:0px;
 	right:0px;
 	background-color:#ddd;
+	width:9999px;
 }
 
 ul#tabs .tab {
 	font-family:"myriad-pro-condensed";
 	box-sizing:border-box;
 	height:100%;
-	display:block;
+	display:inline-block;
 	float:left;
 	margin:0px 5px 0px 5px;
 	padding:5px 30px 0px 30px;

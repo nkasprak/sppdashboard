@@ -71,7 +71,7 @@
             </div><!--end dataTableOuterWrap-->
             <div id="columnPicker">
                 <p>Show columns:</p>
-                <select multiple>
+                <select multiple class="columns">
                     <?php foreach ($columnsArr as $column) : ?>
                         <option selected value="<?php echo $columnIDArr[$column["column_key"]]; ?>"><?php echo $column["shortName"]; ?></option>
                     <?php endforeach; ?>
@@ -81,8 +81,9 @@
                 <button id="saveData">Save Data</button></p>
                 <hr />
                 <p>Get a spreadsheet of the current database: <br />
-                <a href="getSpreadsheet.php">Download</a></p>
+                <a href="#" id="getSpreadsheetLink">Download</a></p>
                 <hr />
+                
                 <p>Upload a new spreadsheet, based off of one downloaded above:
                 <form id="uploadSpreadsheet" action = "uploadSpreadsheet.php" method="POST" enctype="multipart/form-data">
                 	<input type="file" name="uFile" />
@@ -91,6 +92,17 @@
                 To make structural changes (new columns, etc.) use the "structure" tab above; use Excel import/export to make 
                 data changes only. To add a new column, add it to the structure tab first, then download the spreadsheet and 
                 insert your new data. Making structural changes directly in Excel will not work and might cause unpredictable behavior.</p>
+                <hr />
+                Download all data for a single state:
+                <form id="getStateSpreadsheet" action="getStateSpreadsheet.php" method="GET">
+                	<select id="stateSpreadsheetSelector" name="state">
+                    <?php foreach ($statesArr as $name=>$state) : ?>
+                    	<option value = "<?php echo $name; ?>"><?php echo $state; ?></option>
+                    <?php endforeach; ?>	
+                    </select>
+                    <button type="submit">Download</button>
+                </form>
+                <hr />
                 
                 <div id="responseFromServer">
                 
@@ -155,6 +167,7 @@
                             </tbody>
                             
                         </table>
+                        <button id="addNewRowAtEnd">Append Row</button>
                     </div><!--end structureTableWrapper-->
                 	 <div id="structureLeft">
                      <p>&nbsp;</p>
@@ -170,11 +183,33 @@
         	</div><!--end structureOuterWrap-->
            
         </div><!--end structureTab-->
-        
+        <div id="tabsTab" class="tabBody">
+        	<table id="tabsTable">
+            	<thead>
+                	<th>Tab ID</th><th>Tab Name</th><th>&nbsp;</th>
+                </thead>
+                <tbody>
+                <?php foreach ($tabsArr as $tab) { ?>
+                	<tr>
+                        <td><?php echo $tab["tab_id"]; ?></td>
+                        <td><input data-role="tab_title" type="text" value="<?php echo $tab["title"]; ?>" /></td>
+                        <td><a href="#up" class="upLink">Move up</a> | <a href="#down" class="downLink">Move down</a></td>
+                    </tr>
+				<?php } ?>
+                <tfoot>
+                    <tr>
+                    	<td colspan="3"><a href="#saveTabNames" class="saveTabs">Save Tabs</a></td>
+                    </tr>
+                    
+                </tfoot>
+                </tbody>
+            </table>
+        </div>
 	</div><!--end wrapper-->
     <div id="tabPicker">
         	<h2>Dashboard Admin Area</h2>
         	<div class="tab" id="pickData">Data</div>
             <div class="tab" id="pickStructure">Structure</div>
+            <div class="tab" id="pickTabs">Tabs</div>
         </div>
 </body>

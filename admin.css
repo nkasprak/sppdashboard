@@ -89,7 +89,7 @@ div#columnPicker {
 
 div#dataTab div#columnPicker {
 	width:220px;
-	height:100%;
+	min-height:100%;
 	position:absolute;
 	top:0px;
 }
@@ -100,7 +100,7 @@ div#structureTab div#structureLeft {
 	
 }
 
-div#dataTab div#columnPicker select {
+div#dataTab div#columnPicker select.columns {
 	height:200px;
 	width:100%;	
 }
@@ -201,11 +201,28 @@ textArea {
 	white-space:nowrap;	
 }
 
-#structureTab {
+.tabBody {
 	display:none;	
+}
+
+#dataTab {
+	display:block;	
 }
 
 #structureTab table tr.deleted td {
 	background-color:#aaa;
 	color:#555;	
+}
+
+#tabsTable {
+	border-top:1px solid #aaa;
+	border-left:1px solid #aaa;
+	border-spacing:0px;
+}
+
+#tabsTable td, #tabsTable th{
+	padding:5px;
+	margin:0px;
+	border-bottom:1px solid #aaa;
+	border-right:1px solid #aaa;
 }

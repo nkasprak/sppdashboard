@@ -1,9 +1,18 @@
 <?php
 
+
 require_once('phpexcel/Classes/PHPExcel.php');
+require_once("config.php");
+
+
+
 
 // Create new PHPExcel object
 $objPHPExcel = new PHPExcel();
+
+
+$cacheMethod = PHPExcel_CachedObjectStorageFactory::cache_to_sqlite3;
+PHPExcel_Settings::setCacheStorageMethod($cacheMethod);//, $cacheSettings);
 
 // Set document properties
 $objPHPExcel->getProperties()->setCreator("State Priorities Partnership")
@@ -14,36 +23,59 @@ $objPHPExcel->getProperties()->setCreator("State Priorities Partnership")
 							 ->setKeywords("Dashboard Data")
 							 ->setCategory("fiscal");
 							 
-require_once("config.php");
+
 
 $mysqli = new mysqli(DB_SERVER,DB_USER,DB_PASSWORD,DB_DATABASE);
 $mysqli->set_charset("utf8");
 
-$columnIDsSQL = $mysqli->query("SELECT * FROM column_ids");
+$queryColIDs = "";
+foreach ($_GET as $key=>$item) {
+	$queryColIDs .= "column_id = '" . mysqli_real_escape_string($mysqli,$key) . "' OR ";
+}
+
+$queryColIDs = substr($queryColIDs, 0, -4);
+
+$columnIDsSQL = $mysqli->query("SELECT * FROM column_ids WHERE " . $queryColIDs);
 
 while ($row = $columnIDsSQL->fetch_array(MYSQLI_ASSOC)) {
 	$columnIDs[$row["column_key"]] = $row["column_id"];
 };
 
-$columnsSQL = $mysqli->query("SELECT * FROM columns");
+unset($columnIDsSQL);
+
+$queryCols = "";
+
+
+
+foreach ($columnIDs as $key=>$column) {
+	$queryCols .= "column_key = '" . $key . "' OR ";
+}
+$queryCols = substr($queryCols, 0, -4);
+
+
+$columnsSQL = $mysqli->query("SELECT * FROM columns WHERE " . $queryCols);
 while ($row = $columnsSQL->fetch_array(MYSQLI_ASSOC)) {
 	$columnsObj[$columnIDs[$row["column_key"]]] = $row;
 };
+unset($columnsSQL);
 
 $statesSQL = $mysqli->query("SELECT * FROM statenames");
 while ($row = $statesSQL->fetch_array(MYSQLI_ASSOC)) {
 	$statesObj[$row["id"]] = $row["states"];
 };
+unset($statesSQL);
 
 $dataSQL = $mysqli->query("SELECT `unique_key`,`sort_data`,`override_data` FROM data");
 while ($row = $dataSQL->fetch_array(MYSQLI_ASSOC)) {
 	$dataObj[$row["unique_key"]] = $row;
 };
+unset($dataSQL);
 
 $tabsSQL = $mysqli->query("SELECT * FROM tabs");
 while ($row = $tabsSQL->fetch_array(MYSQLI_ASSOC)) {
 	$tabNames[$row["tab_id"]] = $row["title"];
 };
+unset($tabsSQL);
 
 $yearsSQL = $mysqli->query("SELECT `year`,`column_key` FROM column_years");
 $yearsObj = array();
@@ -53,6 +85,9 @@ while ($row = $yearsSQL->fetch_array(MYSQLI_ASSOC)) {
 	}
 	array_push($yearsObj[$row["column_key"]],$row["year"]);
 };
+unset($yearsSQL);
+
+
 
 uasort($columnsObj, function($a,$b) {
 	if ($a["tabAssoc"] != $b["tabAssoc"]) {
@@ -133,10 +168,10 @@ foreach ($tabsObj as $tabIndex=>$tab) {
 	
 	$writeData = function($data_key) {
 		global $objPHPExcel, $col,$row,$dataObj;
-		$objPHPExcel->getActiveSheet()->setCellValueByColumnAndRow($col,$row,$dataObj[$data_key]["sort_data"]);
+		if (array_key_exists($data_key,$dataObj)) $objPHPExcel->getActiveSheet()->setCellValueByColumnAndRow($col,$row,$dataObj[$data_key]["sort_data"]);
 		$col++;
 		$objPHPExcel->getActiveSheet()->getStyle(PHPExcel_Cell::stringFromColumnIndex($col) . $row)->getNumberFormat()->setFormatCode( PHPExcel_Style_NumberFormat::FORMAT_TEXT );
-		$objPHPExcel->getActiveSheet()->setCellValueByColumnAndRow($col,$row,$dataObj[$data_key]["override_data"]);
+		if (array_key_exists($data_key,$dataObj)) $objPHPExcel->getActiveSheet()->setCellValueByColumnAndRow($col,$row,$dataObj[$data_key]["override_data"]);
 		$col++;
 	};
 	
@@ -173,9 +208,6 @@ foreach ($tabsObj as $tabIndex=>$tab) {
 	}
 	$excelTabIndex++;
 }
-
-// Set active sheet index to the first sheet, so Excel opens this as the first sheet
-$objPHPExcel->setActiveSheetIndex(0);
 
 
 // Redirect output to a client's web browser (Excel2007)

@@ -22,6 +22,8 @@ if (isset($_POST["data"])) {
 		$columnIDRef[$row["column_id"]] = $row["column_key"];
 	};
 	
+	
+	
 	if ($theData["mode"]=="data") {
 		
 		//new data query
@@ -38,7 +40,7 @@ if (isset($_POST["data"])) {
 			$year = 0;
 			if (isset($change["address"][2])) $year = $change["address"][2];
 			$toChange = $change["address"][0] . $columnIDRef[$change["address"][1]] . "_" . $year;
-			$theChange = empty($change["actual"]) ? "NULL" : "'".myes($change["actual"])."'";
+			$theChange = is_null($change["actual"]) ? "NULL" : "'".myes($change["actual"])."'";
 			$dataExists = mysqli_num_rows($mysqli->query("SELECT `unique_key` FROM data WHERE `unique_key` = \"" . $toChange . "\""));
 			if ($dataExists > 0) {
 				$useUpdate = true;
@@ -79,6 +81,21 @@ if (isset($_POST["data"])) {
 			$mysqli->query($newDataQuery);
 		}
 		
+	} else if ($theData["mode"] == "tabs") {
+		$mysqli->query("TRUNCATE tabs");
+		$insertQuery = "INSERT INTO tabs VALUES ";
+		$tabs = $theData["data"];
+		for ($i  = 0;$i<count($tabs);$i++) {
+			$tabs[$i]["tabName"] = preg_replace('/[^a-zA-Z0-9 ]/','',$tabs[$i]["tabName"]);
+			$tabs[$i]["tabName"] = substr($tabs[$i]["tabName"],0,31);
+			$insertQuery .= "('" . mysqli_real_escape_string($mysqli, $tabs[$i]["tabID"]) . "', ";
+			$insertQuery .= "'" . mysqli_real_escape_string($mysqli, $tabs[$i]["tabName"]) . "', ";
+			$insertQuery .= "'" . mysqli_real_escape_string($mysqli, $tabs[$i]["order"]) . "'),";
+		}
+		$insertQuery = rtrim($insertQuery, ",");
+		
+		$mysqli->query($insertQuery);
+		
 	} else {
 		
 		echo "<pre>";
@@ -88,6 +105,22 @@ if (isset($_POST["data"])) {
 		if (array_key_exists("additions",$theData)) {
 			$additions = true;
 			$theAdditions = $theData["additions"];
+			
+			
+			print_r($theAdditions);
+			
+			/*check to make sure they don't exist*/
+			for ($i = 0;$i<count($theAdditions);$i++) {
+				$checkQuery = "SELECT * FROM column_ids WHERE column_id = '".$theAdditions[$i]["colID"] . "'";
+				$check = $mysqli->query($checkQuery);
+				if (mysqli_num_rows($check) > 0) {
+					unset($theAdditions[$i]);
+					$theAdditions = array_values($theAdditions);
+				}
+			}
+			
+			print_r($theAdditions);
+			
 			$additionsQuery = "INSERT INTO columns \nVALUES ";
 			$additionsQueryID = "INSERT INTO column_ids \nVALUES ";
 			function addToQuery($theString) {
@@ -99,12 +132,17 @@ if (isset($_POST["data"])) {
 				}
 			};
 			for ($i = 0;$i<count($theAdditions);$i++) {
-				$additionsMax = $mysqli->query("SELECT MAX(column_key) AS MaxID FROM column_ids")->fetch_row();
-				$newColumnKey = $additionsMax[0] + 1;
+				if ($i === 0) {
+					$additionsMax = $mysqli->query("SELECT MAX(column_key) AS MaxID FROM column_ids")->fetch_row();
+					$newColumnKey = $additionsMax[0] + 1;
+				} else {
+					$newColumnKey++;	
+				}
 				$thisAddition = $theAdditions[$i];
 				
 				$columnRef[$newColumnKey] = $thisAddition["colID"];
 				$columnIDRef[$thisAddition["colID"]] = $newColumnKey;
+				$columnIDRef[$thisAddition["orgcolid"]] = $newColumnKey;
 				
 				$additionsQuery .= ("(" .
 					$newColumnKey . ",".
@@ -123,7 +161,7 @@ if (isset($_POST["data"])) {
 					$newColumnKey . "," .
 					addToQuery(myes($thisAddition["colID"])) . ")");
 					
-				if ($i < count($theAdditions) - 1) $additionsQuery .= ",\n";
+				if ($i < count($theAdditions) - 1) $additionsQueryID .= ",\n";
 				
 			}			
 			echo $additionsQuery;
@@ -312,6 +350,34 @@ if (isset($_POST["data"])) {
 				echo "\n" .$query;
 			}
 		}
+		
+		//Resolve tabs
+		$tabResult = $mysqli->query("SELECT tab_id, tab_order FROM tabs");
+		$tabIDs = array();
+		$tabOrders = array();
+		while ($row = mysqli_fetch_assoc($tabResult)) {
+			array_push($tabIDs,$row["tab_id"]);
+			array_push($tabOrders, $row["tab_order"]);
+		}
+		$maxOrder = max($tabOrders);
+		
+		$usedTabs = $mysqli->query("SELECT tabAssoc FROM columns");
+		$newTabs = array();
+		while ($row = mysqli_fetch_assoc($usedTabs)) {
+			if (!in_array($row["tabAssoc"], $tabIDs) && !in_array($row["tabAssoc"], $newTabs)) {
+				array_push($newTabs, $row["tabAssoc"]);
+			}
+		}
+		
+		if (count($newTabs) > 0) {
+			for ($i=0;$i<count($newTabs);$i++) {
+				$query = "INSERT INTO tabs VALUES(" .$newTabs[$i] . ",'newTab".$newTabs[$i]."'," . ($maxOrder + 1) . ")";
+				echo $query;
+				$mysqli->query($query); 	
+			}
+		}
+		
+		
 	}
 	
 	echo "</pre>";

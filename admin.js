@@ -93,7 +93,7 @@ var sfp_admin = function() {
 				display_value = sfpdashboard_shared_functions.formatData(attrs,actual_value);
 				parentTr = $(actual_tds[i]).parents("#dataTable tr.state");
 				override_value = $(parentTr).find("td #input_override_" + col_id).first().val();
-				console.log(override_value);
+				
 				displayTd = $(parentTr).children("td.display[data-id=\""+col_id+"\"]");
 				if (override_value == "") $(displayTd).html(display_value);
 				else $(displayTd).html(override_value);
@@ -130,7 +130,7 @@ var sfp_admin = function() {
 		},
 		switchTab: function(pickerID) {
 			$(".tabBody").hide();
-			var map = {"pickData":"dataTab","pickStructure":"structureTab"};
+			var map = {"pickData":"dataTab","pickStructure":"structureTab","pickTabs":"tabsTab"};
 			$("#" + map[pickerID]).show();
 		},
 		moveRow: function(direction,theRow) {
@@ -152,11 +152,17 @@ var sfp_admin = function() {
 			var row = $(this).parents("tr")[0];
 			sfp_admin.addNewRow(row);
 		},
-		addNewRow: function(beforeRow) {
+		addRowAtEndClickFunction: function() {
+			var row = $("#structureTable").find("tr").last()[0];
+			sfp_admin.addNewRow(row,true);
+		},
+		addNewRow: function(beforeRow,insertAfter) {
+			if (typeof(insertAfter)==="undefined") insertAfter = false;
 			var html = $(beforeRow).html();
 			var newRow = $("<tr class=\"isNew\">" + html + "</tr>");
+			newRow.find("ul.years").remove();
 			$(newRow).find("input").val("");
-			$(newRow).find("textArea").val("");
+			$(newRow).find("textArea").html("");
 			var colID = "newRow" + newRowCounter; 
 			var colIDInput = $(newRow).find("input[data-role='colID']").first();
 			colIDInput.attr("data-orgcolid",colID).val(colID);
@@ -164,7 +170,11 @@ var sfp_admin = function() {
 				sfp_admin.parseNewColId($(this));
 				sfp_admin.duplicateHandler($(this),colID);
 			});
-			$(newRow).insertBefore(beforeRow);
+			if (insertAfter) {
+				$(newRow).insertAfter(beforeRow);
+			} else {
+				$(newRow).insertBefore(beforeRow);
+			}
 			structureAdds.push("newRow" + newRowCounter);
 			newRowCounter++;                 	
 		},
@@ -285,7 +295,9 @@ var sfp_admin = function() {
 						row.find(":input").each(function(i,elem) {
 							var value = $(elem).val();
 							if ($(elem).attr("data-role")=="longName") value = value.replace(/\r\n|\r|\n/g,"<br />");
-							toPush[$(elem).attr("data-role")] = value;
+							if (typeof($(elem).attr("data-role")) !== "undefined") {
+								toPush[$(elem).attr("data-role")] = value;
+							}
 						});
 						toPush.orgcolid = el;
 						postData.additions.push(toPush);
@@ -312,7 +324,7 @@ var sfp_admin = function() {
 					});
 				});
 			} else {return false;}
-			//console.log(postData);
+			console.log(postData);
 			
 			$.post("saveData.php",{data:postData},function(returnData) {
 				$("#responseFromServer" + (mode=="structure" ? "Structure" : "")).html(returnData);
@@ -392,6 +404,37 @@ var sfp_admin = function() {
 				yearDels.push(toAdd);
 			}
 			$(elem).parents("li").first().remove();
+		},
+		tabUp: function(elem) {
+			var row = $(elem).parents("tr").first();
+			var prevRow = $(row).prev("tr");
+			if (prevRow.length > 0) {
+				row.detach();
+				prevRow.before(row);
+			}
+		},
+		tabDown: function(elem) {
+			var row = $(elem).parents("tr").first();
+			var nextRow = $(row).next("tr");
+			if (nextRow.length > 0) {
+				row.detach();
+				nextRow.after(row);
+			}
+		},
+		saveTabs: function() {
+			var i, rows = $("#tabsTable tbody tr"), postObj = [], name;
+		
+			for (i=0;i<rows.length;i++) {
+				name = $(rows[i]).find("input[data-role=\"tab_title\"]").first().val().replace(/[^a-zA-Z0-9 ]/g, '').substring(0,31);
+				postObj.push({
+					tabID: $(rows[i]).children("td").first().text(),
+					tabName: name,
+					order: i
+				});
+			}
+			$.post("saveData.php", {data:{mode:"tabs",data:postObj}}, function(e) {
+				
+			});
 		}
 	}
 }();
@@ -460,6 +503,16 @@ $(document).ready(function() {
 		sfp_admin.saveData();
 	});
 	
+	$("#getSpreadsheetLink").click(function() {
+		var selectedColumns = $("#columnPicker select.columns").val();
+		var requestObj = {};
+		for (var i = 0;i<selectedColumns.length;i++) {
+			requestObj[selectedColumns[i]] = 1;	
+		}
+		var url = "getSpreadsheet.php?" + $.param(requestObj);
+		window.location.href = url;
+	});
+	
 	$("#saveStructureData").click(function() {
 		sfp_admin.saveStructure();
 	});
@@ -478,7 +531,7 @@ $(document).ready(function() {
 		sfp_admin.switchTab(this.id);
 	});
 	
-	$("#columnPicker").on("change", "select", function() {
+	$("#columnPicker").on("change", "select.columns", function() {
 		var selectedColumns = $(this).val();
 		sfp_admin.changeColumns(selectedColumns);
 	});
@@ -514,6 +567,14 @@ $(document).ready(function() {
 	
 	$("#structureTable").on("click","button[data-role='addDataColumn']",sfp_admin.addRowClickFunction);
 	
+	$("#addNewRowAtEnd").on("click", sfp_admin.addRowAtEndClickFunction);
 	
+	$("#tabsTable").on("click", "a.upLink", function() {
+		 sfp_admin.tabUp(this);
+	});
+	$("#tabsTable").on("click", "a.downLink", function() {
+		sfp_admin.tabDown(this);
+	});
+	$("#tabsTable a.saveTabs").on("click", sfp_admin.saveTabs);
 	
 });
