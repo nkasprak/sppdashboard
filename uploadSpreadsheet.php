@@ -120,8 +120,9 @@ if ($mode === "all") {
 	$updateQuery = "";
 	
 	foreach ($changes as $change) {
-		$sortData = empty(mysqli_real_escape_string($mysqli,$change[1])) ? "NULL" : '"' . mysqli_real_escape_string($mysqli,$change[1]). '"';
-		$overrideData = empty(mysqli_real_escape_string($mysqli,$change[2])) ? "NULL" : '"' . mysqli_real_escape_string($mysqli,$change[2]). '"';
+		
+		$sortData = empty($change[1]) ? "NULL" : '"' . mysqli_real_escape_string($mysqli,$change[1]). '"';
+		$overrideData = empty($change[2]) ? "NULL" : '"' . mysqli_real_escape_string($mysqli,$change[2]). '"';
 		$key = mysqli_real_escape_string($mysqli,$change[0]);
 		if (!array_key_exists($key,$existing_data_points)) {
 			$newQuery .= "('" . $key . "','" . mysqli_real_escape_string($mysqli, $change[3]) . "','" . mysqli_real_escape_string($mysqli, $change[4]) . "','" . mysqli_real_escape_string($mysqli, $change[5]) . "',".$sortData.",".$overrideData."),";
@@ -142,11 +143,10 @@ if ($mode === "all") {
 	
 	$mysqli->query($newQuery);
 	
-	echo "Done</p>";
+	echo "Done<br><a href='admin.php'>Back to admin area</a></p>";
 
 } else {
 	$state = $objPHPExcel->getActiveSheet()->getCellByColumnAndRow(1,1)->getValue();
-	echo $state;
 	$yearsFromCol = array();
 	$dataSeries = array();
 	
@@ -191,12 +191,15 @@ if ($mode === "all") {
 	$r = new simpleReader($objPHPExcel->getActiveSheet());
 	$r->sR(2);
 	$r->sC(5);
-	while (!empty($r->rd())) {
+	$currentCellVal = $r->rd();
+	while ($currentCellVal) {
 		$yearsFromCol[$r->gC()] = $r->rd();
 		$r->r();
+		$currentCellVal = $r->rd();
 	}
 	$r->nL();
-	while (!empty($r->rd())) {
+	$currentCellVal = $r->rd();
+	while (!empty($currentCellVal)) {
 		$r->r(2);
 		$seriesName = $r->rd();
 		$dataSeries[$seriesName] = array();
@@ -216,10 +219,11 @@ if ($mode === "all") {
 		}
 		$r->nl();
 		$r->nl();
+		$currentCellVal = $r->rd();
 	}
 	
 	//print_r($dataSeries);
-	
+	$queriesExecuted = 0;
 	foreach ($dataSeries as $seriesName=>$series) {
 		
 		foreach ($series as $year=>$data) {
@@ -246,12 +250,20 @@ if ($mode === "all") {
 			$newQuery = rtrim($newQuery,", ");
 			if (!empty($data["actual"]) || !empty($data["override"])) {
 				$mysqli->query($newQuery);
-				echo $newQuery;
+				$queriesExecuted++;
+				if ($queriesExecuted%10==0) {
+					echo "Updated " . $queriesExecuted . " records...<br />";
+					flush();
+				}
 			}
+			
+	
 			
 		}
 		
 	}
+	echo "Done<br>";
+	echo "<a href='admin.php'>Back to admin area</a></p>";
 }
 
 $mysqli->close();

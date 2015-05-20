@@ -198,7 +198,7 @@ $objSheet->getProtection()->setSheet(true);
 
 // Redirect output to a client's web browser (Excel2007)
 header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-header('Content-Disposition: attachment;filename="test.xlsx"');
+header('Content-Disposition: attachment;filename="' . $state . '_sppdata.xlsx"');
 header('Cache-Control: max-age=0');
 
 $objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, 'Excel2007');
