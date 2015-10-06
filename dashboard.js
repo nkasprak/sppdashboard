@@ -919,6 +919,7 @@ try {
 				
 			},
 			
+			
 			clearBarChart: function() {
 				$("#chartGraphicContainer .barChartGraphic").remove();
 				$("#chartGraphicContainer").remove();
@@ -948,6 +949,14 @@ try {
 				tabIsScrollingLeft = false;
 				clearInterval(tabScrollingTimer);
 			},
+			switchTab: function(clickedTab) {
+				sfpDashboard.setActiveTab(clickedTab);
+				sfpDashboard.assignAltClasses();
+				var whichFooters = sfpDashboard.getFootersNeedCalc();
+				if (whichFooters[clickedTab] == true) sfpDashboard.fillFooter();
+				sfpDashboard.syncCellSize();
+				sfpDashboard.recalcLayout();
+			}
 		}
 	}();
 	
@@ -1087,6 +1096,7 @@ try {
 				}
 			}
 			sfpDashboard.fillFooter(tab);
+			sfpDashboard.syncCellSize();
 		});
 	});
 	
@@ -1140,12 +1150,17 @@ try {
 	//activate tab selection
 	$("#tabs li.tab").click(function() {
 		var clickedTab = $(this).attr("id").replace("tabPicker","");
-		sfpDashboard.setActiveTab(clickedTab);
-		sfpDashboard.assignAltClasses();
-		var whichFooters = sfpDashboard.getFootersNeedCalc();
-		if (whichFooters[clickedTab] == true) sfpDashboard.fillFooter();
-		sfpDashboard.syncCellSize();
-		sfpDashboard.recalcLayout();
+		sfpDashboard.switchTab(clickedTab);
+		
+		$("select#fastTabSwitcher").val(clickedTab);
+	
+	});
+	
+	$("select#fastTabSwitcher").change(function() {
+		var tab = $(this)[0].value, position;
+		sfpDashboard.switchTab(tab);
+		position = $("#tabPicker" + tab).position();
+		$("#tabWrapper").animate({scrollLeft:position.left},100);
 	});
 	
 	sfpDashboard.addPeriodicTask("calculateFooters",function() {

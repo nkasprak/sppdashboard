@@ -27,6 +27,7 @@ input[type="text"] {
 	font-size:12px;
 }
 
+
 .wrapper {
 	position:absolute;
 	width:100%;
@@ -109,6 +110,14 @@ div#dataTab div#columnPicker select.columns {
 	background-color:#f3fbff;
 }
 
+#dataTab .tableWrapper>table td {
+	width:200px;
+}
+
+#dataTab .tableWrapper>table td textArea {
+	width:200px;
+}
+
 .tableScroll {
 	position:relative;
 	width:100%;
@@ -186,6 +195,17 @@ textArea {
 	font-family:"myriad-pro",Arial, Helvetica, sans-serif;
 	resize:none;
 }
+
+#dataTab textArea {
+	white-space:normal;
+	font-family:"myriad-pro",Arial,sans-serif;	
+	margin:0px;
+	border:0px;
+	font-size:12px;	
+	width:100%;
+	height:15px;
+}
+
 
 .tableWrapper>table td, .tableWrapper>table th {
 	vertical-align:top;

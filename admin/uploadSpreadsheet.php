@@ -7,7 +7,7 @@
 <p>
 <?php
 
-require_once("config.php");
+require_once("../config.php");
 $mysqli = new mysqli(DB_SERVER,DB_USER,DB_PASSWORD,DB_DATABASE);
 $mysqli->set_charset("utf8");
 
@@ -18,7 +18,7 @@ while ($row = $colKeySQL->fetch_array(MYSQLI_ASSOC)) {
 };
 
 $inputFile = $_FILES["uFile"]["tmp_name"];
-require_once('phpexcel/Classes/PHPExcel.php');
+require_once('../phpexcel/Classes/PHPExcel.php');
 
 
 $inputFileType = PHPExcel_IOFactory::identify($inputFile);
@@ -28,8 +28,7 @@ $objPHPExcel->setActiveSheetIndex(0);
 $mode = $objPHPExcel->getActiveSheet()->getCellByColumnAndRow(0,1)->getValue() === "State = " ? "state" : "all";
 
 if ($mode === "all") {
-	echo $mode;
-	die();
+	
 	
 	
 	$numSheets = $objPHPExcel->getSheetCount();

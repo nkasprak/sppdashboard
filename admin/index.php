@@ -4,15 +4,17 @@
 <title>SFP Dashboard Wireframe Admin</title>
 <script src="//use.typekit.net/vrv7qdc.js"></script>
 <script>try{Typekit.load();}catch(e){}</script>
-<script type="text/javascript" src="jquery-1.11.1.min.js"></script>
-<script src="shared.js"></script>
+<script type="text/javascript" src="../jquery-1.11.1.min.js"></script>
+<script src="../shared.js"></script>
+<script src="autogrow.min.js"></script>
 <script src="admin.js"></script>
 <link rel="stylesheet" href="admin.css" tyle="text/css" />
 
 </head>
 <body>
 	<div class="wrapper">
-	<?php include("dashboard.php"); ?>
+    <?php include("../config.php"); ?>
+	<?php include("../dashboard.php"); ?>
        	<div id="dataTab" class="tabBody">
         	<div id="dataTableOuterWrap" class="tableOuterWrap">
             	<div id="dataTableScroll" class="tableScroll">
@@ -23,7 +25,7 @@
                                 <?php 
                              	foreach ($columnsArr as $column) : ?>
                                 	<?php //print_r($columnsArr); ?>
-                                	<th class="title" colspan="3" <?php 
+                                	<th class="title" colspan="2" <?php 
 									foreach ($column as $attrName=>$attr) {
 										if (!in_array($attrName,array("shortName","longName","columnOrder","column_key")) && isset($attr)) : ?>data-<?php echo $attrName;?>="<?php echo $attr;?>" <?php endif;
 									};
@@ -37,8 +39,8 @@
                            	 	</tr><tr><th class="first">&nbsp;</th>
                              	<?php foreach ($columnsArr as $column) : ?>
                                 	<th class = "actual" data-id="<?php echo $columnIDArr[$column["column_key"]];?>">Actual</th>
-                                	<th class = "display" data-id="<?php echo $columnIDArr[$column["column_key"]]; ?>">Display</th>
-                                	<th class = "override" data-id="<?php echo $columnIDArr[$column["column_key"]]; ?>">Override</th>
+                                	
+                                	<th class = "override" data-id="<?php echo $columnIDArr[$column["column_key"]]; ?>">Note</th>
                             	<?php endforeach; ?>
 								</tr>                            
 							</thead>
@@ -57,9 +59,9 @@
 									//$key = $name . $column["column_key"];
 									if (array_key_exists($key,$dataArr)) $dataExists = true;
 									else $dataExists = false; ?>
-                                    <td class = "actual" data-id="<?php echo $columnIDArr[$column["column_key"]];?>"><input type="text" id="input_actual_<?php echo $columnIDArr[$column["column_key"]];?>" value="<?php echo ($dataExists ? addcslashes($dataArr[$key]["sort_data"],'"') : "");?>" /></td>
-                                    <td class = "display" data-id="<?php echo $columnIDArr[$column["column_key"]];?>"></td>
-                                    <td class = "override" data-id="<?php echo $columnIDArr[$column["column_key"]];?>"><input type="text" id="input_override_<?php echo $columnIDArr[$column["column_key"]]?>" value="<?php echo ($dataExists ? addcslashes($dataArr[$key]["override_data"],'"') : "");?>" /></td>
+                                    <td class = "actual" data-id="<?php echo $columnIDArr[$column["column_key"]];?>"><textarea type="text" id="input_actual_<?php echo $columnIDArr[$column["column_key"]];?>"><?php echo ($dataExists ? addcslashes($dataArr[$key]["sort_data"],'"') : "");?></textarea></td>
+                                   
+                                    <td class = "override" data-id="<?php echo $columnIDArr[$column["column_key"]];?>"><textarea type="text" id="input_override_<?php echo $columnIDArr[$column["column_key"]]?>"><?php echo ($dataExists ? addcslashes($dataArr[$key]["override_data"],'"') : "");?></textarea></td>
                                     
                                 <?php endforeach; ?>
                                 </tr>
@@ -94,7 +96,7 @@
                 insert your new data. Making structural changes directly in Excel will not work and might cause unpredictable behavior.</p>
                 <hr />
                 Download all data for a single state:
-                <form id="getStateSpreadsheet" action="getStateSpreadsheet.php" method="GET">
+                <form id="getStateSpreadsheet" action="../getStateSpreadsheet.php" method="GET">
                 	<select id="stateSpreadsheetSelector" name="state">
                     <?php foreach ($statesArr as $name=>$state) : ?>
                     	<option value = "<?php echo $name; ?>"><?php echo $state; ?></option>

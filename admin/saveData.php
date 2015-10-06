@@ -8,7 +8,7 @@ if (isset($_POST["data"])) {
 		$theOrder = array_flip($theData["order"]);
 	}
 	
-	include("config.php");
+	include("../config.php");
 	
 	$mysqli = new mysqli(DB_SERVER,DB_USER,DB_PASSWORD,DB_DATABASE);
 	function myes($string) {

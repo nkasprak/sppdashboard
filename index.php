@@ -30,7 +30,7 @@
 <script type="text/javascript" src="flot/excanvas.min.js"></script>
 <script type="text/javascript" src="flot/jquery.flot.min.js"></script>
 
-
+<?php include("config.php"); ?>
 <?php include("dashboard.php"); //Pulls data from database and organizes it into associative arrays ?>
 
 </head>
@@ -48,7 +48,11 @@
     <div id="main">
     	<div class="blue">
             <div id="introText">
-            <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
+            <p>Switch to tab: <select id="fastTabSwitcher">
+            <?php for ($tabIndex = 0;$tabIndex<count($tabsArr);$tabIndex++) {
+				echo '<option value="'.$tabsArr[$tabIndex]["tab_id"]. '">'.$tabsArr[$tabIndex]["title"]."</option>\n";
+			} ?>
+            </select></p>
             </div><!--end div#introText-->
             <div id="tabWrapper">
             

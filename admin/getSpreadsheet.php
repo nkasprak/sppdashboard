@@ -1,8 +1,8 @@
 <?php
 
 
-require_once('phpexcel/Classes/PHPExcel.php');
-require_once("config.php");
+require_once('../phpexcel/Classes/PHPExcel.php');
+require_once("../config.php");
 
 
 

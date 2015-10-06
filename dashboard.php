@@ -1,4 +1,4 @@
-<?php include("config.php"); 
+<?php
 
 $mysqli = new mysqli(DB_SERVER,DB_USER,DB_PASSWORD,DB_DATABASE);
 $mysqli->set_charset("utf8");

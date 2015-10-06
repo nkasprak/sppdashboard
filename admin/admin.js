@@ -34,8 +34,8 @@ var sfp_admin = function() {
 		if (typeof(year)=="undefined") year=0;
 		if (!dataChanges.has([state,col_id,year])) dataChanges.push([state,col_id,year]);
 		dataChangesByAddress[state + "_" + col_id + "_" + year] = {
-			actual:	$("#dataTable tr[data-state=\"" + state + "\"] td.actual[data-id=\"" + col_id + "\"] input").val(),
-			override: $("#dataTable tr[data-state=\"" + state + "\"] td.override[data-id=\"" + col_id + "\"] input").val(),
+			actual:	$("#dataTable tr[data-state=\"" + state + "\"] td.actual[data-id=\"" + col_id + "\"] textArea").val(),
+			override: $("#dataTable tr[data-state=\"" + state + "\"] td.override[data-id=\"" + col_id + "\"] textArea").val(),
 		}
 	};
 	var addToListOfStructureChanges = function(col_id,attr) {
@@ -101,8 +101,8 @@ var sfp_admin = function() {
 		},
 		writeData: function(state,col_id) {
 			var attrs = sfp_admin.getAttrs(col_id);
-			var actualSelector = "#dataTable tr[data-state='" + state + "'] input#input_actual_" + col_id;	
-			var overrideSelector = "#dataTable tr[data-state='" + state + "'] input#input_override_" + col_id;	
+			var actualSelector = "#dataTable tr[data-state='" + state + "'] textArea#input_actual_" + col_id;	
+			var overrideSelector = "#dataTable tr[data-state='" + state + "'] textArea#input_override_" + col_id;	
 			var actual_value = $(actualSelector).val();
 			var year = 0;
 			var th = $("#dataTable thead th.title[data-id=\"" + col_id + "\"]");
@@ -324,12 +324,11 @@ var sfp_admin = function() {
 					});
 				});
 			} else {return false;}
-			console.log(postData);
-			
 			$.post("saveData.php",{data:postData},function(returnData) {
 				$("#responseFromServer" + (mode=="structure" ? "Structure" : "")).html(returnData);
 				//if (mode=="structure") window.location.reload();
 				//else sfp_admin.clearListOfChanges();
+				window.location.reload();
 			});
 			
 		},
@@ -436,7 +435,7 @@ var sfp_admin = function() {
 				
 			});
 		}
-	}
+	};
 }();
 
 $(document).ready(function() {
@@ -444,33 +443,63 @@ $(document).ready(function() {
 	sfp_admin.writeDataDisplay();
 	sfp_admin.storeOriginalColIDs();
 	
-	$("#dataTable").on("change", "input[type='text']", function() {
+	$("#dataTable").on("change", "textArea", function() {
 		var state = $(this).parent().parent().attr("data-state");
 		var dataID = $(this).parent().attr("data-id");
 		sfp_admin.writeData(state,dataID);
+	});
+	
+	(function() {
+	
+		var autogrowF = function(e) {
+			$(e).css("height","auto");
+			$(e).autogrow({onInitialize:true,animate:false});
+			$(e).css("overflow-y","scroll");
+		}
+		
+		$("#dataTable textArea").click(function() {
+			autogrowF(this);
+		});
+		
+		$("#dataTable textArea").on("keypress", function() {
+			var e = this;
+			clearTimeout(sfp_admin.growTimer);
+			sfp_admin.growTimer = setTimeout(function() {
+				autogrowF(e)
+			},500);
+		});
+	
+	})();
+	
+	
+	
+	$("#dataTable textArea").blur(function() {
+		var b = this;
+		setTimeout(function() {
+			$(b).css("height","15px");
+			$(b).css("overflow-y","auto");
+		},10);
 	});
 	
 	$("#dataTable th select").change(function(e) {
 		var year = $(this).val();
 		$(this).parents("th").first().attr("data-year",year);
 		var colkey = $(this).data("colkey");
-		var url = "getDataSubset.php?year=" + year + "&col=" + colkey;
+		var url = "../getDataSubset.php?year=" + year + "&col=" + colkey;
 		$.get(url,function(d) {
 			var theData, colid, colData, baseSelector, overrideData, sortData, roundFactor, displayData, existingChanges, theChange;
 			colid = d.colID;
 			colData = sfp_admin.getAttrs(colid);
 			existingChanges = sfp_admin.getListOfChangesByAddress();
 			//make blank first
-			$("#dataTable td.actual[data-id=\"" + colid + "\"] input").val("");
-			$("#dataTable td.display[data-id=\"" + colid + "\"]").text("");
-			$("#dataTable td.override[data-id=\"" + colid + "\"] input").val("");
+			$("#dataTable td.actual[data-id=\"" + colid + "\"] textArea").text("");
+			$("#dataTable td.override[data-id=\"" + colid + "\"] textArea").text("");
 			for (var i=0;i<d.data.length;i++) {
 				theData = d.data[i];
 				baseSelector = "#dataTable tr[data-state=\"" + theData.state + "\"] td.";
 				if (theData.override_data == null && theData.sort_data == null) {
-					$(baseSelector + "actual[data-id=\"" + colid + "\"] input").val("");
-					$(baseSelector + "display[data-id=\"" + colid + "\"]").text("");
-					$(baseSelector + "override[data-id=\"" + colid + "\"] input").val("");
+					$(baseSelector + "actual[data-id=\"" + colid + "\"] textArea").text("");
+					$(baseSelector + "override[data-id=\"" + colid + "\"] textArea").text("");
 				} else {
 					overrideData = theData.override_data;
 					sortData = theData.sort_data;
@@ -488,11 +517,11 @@ $(document).ready(function() {
 					}
 					if (colData.prepend) displayData = colData.prepend + ("" + displayData);
 					if (colData.append) displayData = colData.append + ("" + displayData);
-					$(baseSelector + "actual[data-id=\"" + colid + "\"] input").val(sortData);
-					$(baseSelector + "display[data-id=\"" + colid + "\"]").text(displayData);
+					$(baseSelector + "actual[data-id=\"" + colid + "\"] textArea").text(sortData);
+					//$(baseSelector + "display[data-id=\"" + colid + "\"]").text(displayData);
 					if (overrideData) {
-						$(baseSelector + "display[data-id=\"" + colid + "\"]").text(overrideData);
-						$(baseSelector + "override[data-id=\"" + colid + "\"] input").val(overrideData);
+						//$(baseSelector + "display[data-id=\"" + colid + "\"]").text(overrideData);
+						$(baseSelector + "override[data-id=\"" + colid + "\"] textArea").text(overrideData);
 					}
 				}
 			}
