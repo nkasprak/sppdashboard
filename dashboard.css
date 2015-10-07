@@ -320,8 +320,29 @@ div.dataDisplayArea div.tableArea table {
 	
 }
 
-div.dataDisplayArea div.tableArea table span.sortData, div.dataDisplayArea div.tableArea table span.initialSort {
+div.dataDisplayArea div.tableArea table span.sortData, div.dataDisplayArea div.tableArea table span.initialSort, div.dataDisplayArea div.tableArea table div.noteData {
 	display:none;	
+	max-width:150px;
+	white-space:normal;
+	border-left:1px solid #000;
+	padding-left:5px;
+	margin-left:5px;
+}
+
+
+div.dataDisplayArea div.tableArea table div.noteButton, div.dataDisplayArea div.tableArea table div.note {
+	display:inline-block;
+	position:relative;	
+}
+
+div.dataDisplayArea div.tableArea table div.noteButton a {
+	text-decoration:none;
+	font-weight:bold;
+	font-size:24px;	
+}
+
+div.dataDisplayArea div.tableArea table div.noteButton a:hover {
+	text-decoration:underline;	
 }
 
 div.dataDisplayArea div.tableArea div {	

@@ -65,7 +65,7 @@ try {
 			
 			/*Loop through cells that are common to both header row and main row (although they should be the same 
 			number of cells - if they don't there's a problem)*/
-			for (var i = 0;i<Math.min(rowOfCells.length,rowOfHeaders.length);i++) {
+			for (var i = 0,ii=Math.min(rowOfCells.length,rowOfHeaders.length);i<ii;i++) {
 				
 				//Measure max width for this column - either the header column is wider or the table column is wider
 				maxWidth = Math.max($(rowOfCells[i]).width(),$(rowOfHeaders[i]).width())*1;
@@ -93,7 +93,7 @@ try {
 			var allRows = $("#tabBodies .tab" + activeTab + " .mainTableArea table tr");
 			var leftRows = $("#tabBodies .tab" + activeTab + " .leftTableArea table tr");
 			var maxHeight;
-			for (var i = 0;i<Math.min(allRows.length,leftRows.length);i++) {
+			for (var i = 0,ii=Math.min(allRows.length,leftRows.length);i<ii;i++) {
 				var maxHeight = Math.max($($(allRows[i]).children("td")[0]).height(),$($(leftRows[i]).children("td")[0]).height());
 				$($(leftRows[i]).children("td")[0]).attr("height",maxHeight);
 				$($(allRows[i]).children("td")[0]).attr("height",maxHeight);
@@ -112,7 +112,7 @@ try {
 		var returnColIndex = function(col_id) {
 			var tabOfCol = getColumnDataAttr(col_id,"tabAssoc");
 			var tds = $($("#tabBodies .tab" + tabOfCol + " .mainTableArea table tbody tr")[0]).children("td");
-			for (var i = 0;i<tds.length;i++) {
+			for (var i = 0,ii=tds.length;i<ii;i++) {
 				if ($(tds[i]).hasClass(col_id)) return i;	
 			}
 			return -1;
@@ -124,7 +124,7 @@ try {
 		var getColumnDataAttr = function(col_id,attr) {
 			var currentTab;
 			var value;
-			for (var i = 0;i<$("#tabBodies .tabBody").length;i++) {
+			for (var i = 0,ii=$("#tabBodies .tabBody").length;i<ii;i++) {
 				currentTab = $($("#tabBodies .tabBody")[i]);
 				value = $($($(currentTab).find(".topTableArea table tbody").children("tr")[0]).children("td." + col_id)).attr("data-" + attr);
 				if (typeof(value) != "undefined") return value;
@@ -177,13 +177,13 @@ try {
 				if (tabID == "all") {
 					
 					//Loop through each tab
-					for (var i = 1;i<=$("#tabBodies .tabBody").length;i++) {
+					for (var i = 1,ii=$("#tabBodies .tabBody").length;i<=ii;i++) {
 						
 						//Get the tob row as a set of cells
 						var tds = $($("#tabBodies .tab" + i + " .mainTableArea table tbody tr")[0]).children("td");
 						
 						//Loop through the cells and extract the column id from the class.
-						for (var j = 0;j<tds.length;j++) {
+						for (var j = 0,jj=tds.length;j<jj;j++) {
 							toReturn.push($(tds[j]).attr("class"));
 						}
 					}
@@ -191,7 +191,7 @@ try {
 					
 					//Same thing as above except only for one tab.
 					var tds = $($("#tabBodies .tab" + tabID + " .mainTableArea table tbody tr")[0]).children("td");
-					for (var i = 0;i<tds.length;i++) {
+					for (var i = 0,ii=tds.length;i<ii;i++) {
 						toReturn.push($(tds[i]).attr("class"));	
 					}
 				}
@@ -212,9 +212,9 @@ try {
 			activateQuestionList: function() {
 				var lists = $("div.questionList ul");
 				var list;
-				for (var i = 0; i<lists.length;i++) {
+				for (var i = 0,ii=lists.length; i<ii;i++) {
 					list = $(lists[i]).children("li");
-					for (var j = 0;j<list.length;j++) {
+					for (var j = 0,jj=list.length;j<jj;j++) {
 						$(list[j]).click(qListClick);	
 					}
 				}
@@ -282,7 +282,7 @@ try {
 				I want to be able to do this in the background for hidden tabs)*/
 				var leftTableRows = $("#tabBodies .tab" + tab + ' .leftTableArea table tbody tr[data-include="true"]');
 				var mainTableRows = $("#tabBodies .tab" + tab + ' .mainTableArea table tbody tr[data-include="true"]');
-				for (var i = 0;i<Math.max(leftTableRows.length,mainTableRows.length);i++) {
+				for (var i = 0,ii=Math.max(leftTableRows.length,mainTableRows.length);i<ii;i++) {
 					if (leftTableRows[i]) $(leftTableRows[i]).removeClass("alt");
 					if (mainTableRows[i]) $(mainTableRows[i]).removeClass("alt");
 					if (i%2==0) {
@@ -364,7 +364,7 @@ try {
 					var usedFilters = [];
 					
 					/*Loop through current filters*/
-					for (var i = 0;i<=filters.length-2;i++) {
+					for (var i = 0,ii=filters.length-2;i<=ii;i++) {
 						
 						/*and store the filters that are already being used*/
 						usedFilters.push($(filters[i]).children("select.filterBy").val());
@@ -373,7 +373,7 @@ try {
 					var defaultValue;
 					
 					/*Loop through all the column IDs*/
-					for (var i = 0;i<cols.length;i++) {
+					for (var i = 0,ii=cols.length;i<ii;i++) {
 						
 						/*...until we find the first column id that isn't already being used as a filter*/
 						if (($.inArray(cols[i],usedFilters))==-1) {
@@ -396,7 +396,7 @@ try {
 				var optionsString = "";
 				
 				/*Loop through all the column ids...*/
-				for (var i = 0;i<cols.length;i++) {
+				for (var i = 0,ii=cols.length;i<ii;i++) {
 					
 					/*and create options for each.*/
 					optionsString += '<option value="' + cols[i] + '">' + sfpDashboard.getColumnShortName(cols[i]) + "</option>";
@@ -486,7 +486,7 @@ try {
 				var filterArray = function() {
 					var comparisons = [];
 					var lis = $("#tabBodies .tab" + tab_id + " ul.filters li"), li, privFilterBy, privCompare, privValue, privMonth, privDay, privUseDate;
-					for (var i = 0; i<lis.length-1; i++) {
+					for (var i = 0,ii=lis.length-1; i<ii; i++) {
 						li = lis[i];
 						privFilterBy = $(li).children("select.filterBy").val();
 						privCompare = $(li).children("select.compare").val();
@@ -535,8 +535,8 @@ try {
 				var mainTableTrs = $("#tabBodies .tabBody .mainTableArea table tbody tr");
 				
 				/*Loop through the table rows*/
-				var state, tr, showRow, cValue, colId;
-				for (var i = 0;i<mainTableTrs.length;i++) {
+				var state, tr, showRow, cValue, colId, numFilters=filterArray.length;
+				for (var i = 0,ii=mainTableTrs.length;i<ii;i++) {
 					tr = mainTableTrs[i];
 					
 					/*Get state from row class*/
@@ -546,7 +546,7 @@ try {
 					showRow = true;
 					
 					/*Loop through each active filter*/
-					for (var j = 0;j<filterArray.length;j++) {
+					for (var j = 0;j<numFilters;j++) {
 						colId = filterArray[j].filterBy;
 						
 						/*Find the cell in this row corresponding to the filter being examined*/
@@ -635,7 +635,7 @@ try {
 				
 				//Loop through the cells in the column. They'll be in order of the sort, and the loop index corresponds to
 				//the sort position.
-				for (var i = 0;i<mainTDs.length;i++) {
+				for (var i = 0,ii=mainTDs.length;i<ii;i++) {
 					//Get the state from the class...
 					state = $(mainTDs[i]).parent().attr("class").replace(" alt","");
 					//Get the corresponding state cell from the left table, and remove any existing sortData...
@@ -676,7 +676,7 @@ try {
 					//Loop through the cells and store the values in vArray;
 					var vArray = [];
 					var val;
-					for (var i = 0;i<tds.length;i++) {
+					for (var i = 0,ii=tds.length;i<ii;i++) {
 						if ($(tds[i]).children("span.sortData").length > 0) {
 							val = $(tds[i]).children("span.sortData").html()*1;
 						} else {
@@ -695,7 +695,7 @@ try {
 					switch (mode) {
 						case "average":
 						var total = 0;
-						for (var i = 0;i<vArray.length;i++) {
+						for (var i = 0,ii=vArray.length;i<ii;i++) {
 							total += vArray[i];
 						}
 						return total/vArray.length;
@@ -739,7 +739,7 @@ try {
 				var col_id;
 				var quantity, formattedQuantity;
 				var roundMultiplier;
-				for (var i = 0;i<footerTrs.length;i++) {
+				for (var i = 0,ii=footerTrs.length;i<ii;i++) {
 					tr = $(footerTrs[i]);
 					
 					//get the mode (the thing we're calculating - average, median, max, or min) - from the <tr>'s class name
@@ -749,7 +749,7 @@ try {
 					tds = tr.children("td");
 					
 					//Loop through those...
-					for (var j = 0;j<tds.length;j++) {
+					for (var j = 0,jj=tds.length;j<jj;j++) {
 						
 						//get column id
 						col_id = $(tds[j]).attr("class");
@@ -878,7 +878,7 @@ try {
 					$.get(url,function(data) {
 						var flotifyData = function(d) {
 							var i = 0,returnData = [],returnTicks=[];
-							for (i=0;i<d.data.length;i++) {
+							for (i=0,ii=d.data.length;i<ii;i++) {
 								returnData[i] = [d.data[i].year,d.data[i].sort_data];	
 							}
 							return returnData;
@@ -1071,7 +1071,7 @@ try {
 			colData = $(".tab" + tab + " .topTableArea table td." + colid).data();
 			//make blank first
 			$(".tab" + tab + " .mainTableArea table td." + colid).html("<span class=\"display\"></span><span class=\"sortData\"></span>");
-			for (var i=0;i<d.data.length;i++) {
+			for (var i=0,ii=d.data.length;i<ii;i++) {
 				theData = d.data[i];
 				baseSelector = ".tab" + tab + " .mainTableArea table tr." + theData.state + " td." + colid;
 				if (theData.override_data == null && theData.sort_data == null) {
@@ -1089,7 +1089,7 @@ try {
 					
 					if (colData.prepend) overrideData = colData.prepend + ("" + overrideData);
 					if (colData.append) overrideData = ("" + overrideData) + colData.append;
-					if (theData.override_data) overrideData = theData.override_data;
+					if (theData.override_data) $(baseSelector).append("<div class=\"note\"><div class=\"noteButton\"><a href=\"#\">*</a></div><div class=\"noteData\">"+theData.override_data+"</div></div>");
 					$(baseSelector + " span.display").html(overrideData);
 					$(baseSelector + " span.sortData").html(sortData);
 					if (colData.mode == "numeric") $(baseSelector).append(" <div class='lineChartButton'></div>");
@@ -1107,6 +1107,21 @@ try {
 	
 	$(".topLeftHeaderText").click(function() {
 		sfpDashboard.sortColumn("default");
+	});
+	
+	$(".mainTableArea table td").on("click",".noteButton",function() {
+		var theNote = $(this).next();
+		if (theNote.is(":visible")) {
+			$(this).next().hide();
+		} else {
+			$(this).next().show();
+		}
+		sfpDashboard.syncCellSize();
+	});
+	
+	$(".mainTableArea table td").on("click",".noteData",function() {
+		$(this).hide();
+		sfpDashboard.syncCellSize();
 	});
 	
 	/*Activate initial filter's column change functionality - this can probably be deleted

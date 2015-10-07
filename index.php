@@ -247,7 +247,7 @@
 													}
 												}
 												
-												if (!empty($data["override_data"])) $data["display_data"] = $data["override_data"];
+												//if (!empty($data["override_data"])) $data["display_data"] = $data["override_data"];
 											} else {
 												/*Data does not exist*/
 												$data["display_data"] = "";
@@ -257,6 +257,7 @@
 											/*Write the table cell (with class of the column id)*/
 											echo '<td class="'.$cid.'"' . ($column["mode"] == "numeric" ? ' align="right"' : "") . '>';
 											echo '<span class="display">' . $data["display_data"] ."</span>". (is_null($data["sort_data"]) ? "" : "<span class='sortData'>".$data["sort_data"]."</span>" );
+											if (!empty($data["override_data"])) echo "<div class='note'><div class='noteButton'><a href='#'>*</a></div><div class='noteData'>" . $data["override_data"] . "</div></div>";
 											if ($column["mode"]=="numeric" && array_key_exists($column["column_key"],$yearsArr) && $data["display_data"] != "") {
 												echo " <div class='lineChartButton'></div>";
 											};
