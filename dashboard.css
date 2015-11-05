@@ -25,6 +25,8 @@ body div {
 
 td {
 	white-space:nowrap;	
+	box-sizing:content-box;
+	line-height:17px;
 }
 
 div#wrapper, div#ie7 {

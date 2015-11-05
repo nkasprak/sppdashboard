@@ -276,7 +276,7 @@
 							   for ($fArrI = 0;$fArrI < count($fArr);$fArrI++) {
 									echo '<tr class="row_'. strtolower($fArr[$fArrI]) . '">'."\n";
 								   	foreach ($columnsArr as $cid=>$column) {
-										if ($column['tabAssoc'] == $tabIndex) echo '<td class="'.$cid.'"'. ($column["mode"] == "numeric" ? ' align="right"' : "").'>&nbsp;</td>';	
+										if ($column['tabAssoc'] == $tabIndex) echo '<td class="'.$cid.'"'. ($column["mode"] == "numeric" ? ' align="right"' : "").'><span class="sortData"></span><span class="display"></span></td>';	
 									}
 									echo "\n</tr>\n";
 							   }

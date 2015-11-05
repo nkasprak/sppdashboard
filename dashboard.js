@@ -1,17 +1,20 @@
 // SFP Dashboard
 // by Nicholas A. Kasprak
 // CBPP
+/*jshint multistr: true */
+var startTime = new Date().getTime();
 var sfpDashboard;
 $(window).load(function() { //using window load rather than document ready seems to make the table layout more reliable
+"use strict";
 try {
 	/*On the main page there's this chunk of code: 
-		var ie7 = true;
+		ie7 = true;
 		<!--[if lt IE 8]>
 		<script type="text/javascript">
 			var ie7 = false;
 		</script>
 		<![endif]-->*/
-	if (ie7) return false;
+	if (ie7) {return false;}
 	//Because if you're using Internet Explorer 7, we don't serve your kind here.*/
 	
 	sfpDashboard = function() {
@@ -31,19 +34,26 @@ try {
 		
 		//storage for tasks to run every second
 		var periodicTasks = {};
-		var periodicTimer = setInterval(function() {
+		/*var periodicTimer = */setInterval(function() {
 			for (var task in periodicTasks) {
-				try {
-					periodicTasks[task]();
-				} catch (ex) {
-					console.log("error executing task " + task);	
+				if (periodicTasks.hasOwnProperty(task)) {
+					try {
+						periodicTasks[task]();
+					} catch (ex) {
+						console.log("error executing task " + task);	
+					}
 				}
 			}
 		},5000);
 		
 		var tabIsScrollingRight = false;
-		var tabIscrollingLeft = false;
+		var tabIsScrollingLeft = false;
 		var tabScrollingTimer;
+		var fLoopI;
+		var fLoopJ;
+		var fLoopILength;
+		var fLoopJLength;
+		var fLoopRunning = false;
 		
 		//private functions follow
 		
@@ -89,15 +99,22 @@ try {
 		var privateSyncHeights = function() {
 			/*This is all basically the same as the syncWidths function, but no need to track accumulated
 			height because the scrolling behaves a bit differently.*/
-			$("th, td").removeAttr("height");
+			//$("th, td").removeAttr("height");
+			$("th, td").css("height","default");
 			var allRows = $("#tabBodies .tab" + activeTab + " .mainTableArea table tr");
 			var leftRows = $("#tabBodies .tab" + activeTab + " .leftTableArea table tr");
 			var maxHeight;
 			for (var i = 0,ii=Math.min(allRows.length,leftRows.length);i<ii;i++) {
-				var maxHeight = Math.max($($(allRows[i]).children("td")[0]).height(),$($(leftRows[i]).children("td")[0]).height());
-				$($(leftRows[i]).children("td")[0]).attr("height",maxHeight);
-				$($(allRows[i]).children("td")[0]).attr("height",maxHeight);
+				maxHeight = Math.max($($(allRows[i]).children("td")[0]).height(),$($(leftRows[i]).children("td")[0]).height());
+				//$($(leftRows[i]).children("td")[0]).attr("height",maxHeight);
+				//$($(allRows[i]).children("td")[0]).attr("height",maxHeight);
+				
+				$($(leftRows[i]).children("td")[0]).css("height",maxHeight + "px");
+				$($(allRows[i]).children("td")[0]).css("height",maxHeight + "px");
 			}
+			maxHeight = Math.max($(".leftTableArea > .tableWrapper > table").height(),
+								 $(".mainTableArea > .tableWrapper > table").height());
+			$(".leftTableArea > .tableWrapper > table, .mainTableArea > .tableWrapper > table").height(maxHeight);
 		};
 		
 		
@@ -113,7 +130,7 @@ try {
 			var tabOfCol = getColumnDataAttr(col_id,"tabAssoc");
 			var tds = $($("#tabBodies .tab" + tabOfCol + " .mainTableArea table tbody tr")[0]).children("td");
 			for (var i = 0,ii=tds.length;i<ii;i++) {
-				if ($(tds[i]).hasClass(col_id)) return i;	
+				if ($(tds[i]).hasClass(col_id)) {return i;}	
 			}
 			return -1;
 		};
@@ -122,13 +139,8 @@ try {
 		very useful. This function extracts column metadata from the <td> elements of the first row of the top header table,
 		where I've stored it.*/
 		var getColumnDataAttr = function(col_id,attr) {
-			var currentTab;
-			var value;
-			for (var i = 0,ii=$("#tabBodies .tabBody").length;i<ii;i++) {
-				currentTab = $($("#tabBodies .tabBody")[i]);
-				value = $($($(currentTab).find(".topTableArea table tbody").children("tr")[0]).children("td." + col_id)).attr("data-" + attr);
-				if (typeof(value) != "undefined") return value;
-			}
+			var value = $(".topTableArea td." + col_id).attr("data-" + attr);
+			return value;
 		};
 		
 		/*Used in handling dates in some columns. Returns the number of days into the year of a particular date.*/
@@ -141,7 +153,7 @@ try {
 			}
 			rVal += (days*1);
 			return rVal;
-		}
+		};
 		
 		/*Public functions*/
 		return {
@@ -171,16 +183,16 @@ try {
 			
 			//Gets a list of column IDs for a particular tab.
 			getColumnIds: function(tabID) {
-				var toReturn = [];
+				var toReturn = [], tds, i, ii;
 				
 				//Or all the tabs at once. If that's what you want.
-				if (tabID == "all") {
+				if (tabID === "all") {
 					
 					//Loop through each tab
-					for (var i = 1,ii=$("#tabBodies .tabBody").length;i<=ii;i++) {
+					for (i = 1,ii=$("#tabBodies .tabBody").length;i<=ii;i++) {
 						
 						//Get the tob row as a set of cells
-						var tds = $($("#tabBodies .tab" + i + " .mainTableArea table tbody tr")[0]).children("td");
+						tds = $($("#tabBodies .tab" + i + " .mainTableArea table tbody tr")[0]).children("td");
 						
 						//Loop through the cells and extract the column id from the class.
 						for (var j = 0,jj=tds.length;j<jj;j++) {
@@ -190,8 +202,8 @@ try {
 				} else {
 					
 					//Same thing as above except only for one tab.
-					var tds = $($("#tabBodies .tab" + tabID + " .mainTableArea table tbody tr")[0]).children("td");
-					for (var i = 0,ii=tds.length;i<ii;i++) {
+					tds = $($("#tabBodies .tab" + tabID + " .mainTableArea table tbody tr")[0]).children("td");
+					for (i = 0,ii=tds.length;i<ii;i++) {
 						toReturn.push($(tds[i]).attr("class"));	
 					}
 				}
@@ -283,11 +295,11 @@ try {
 				var leftTableRows = $("#tabBodies .tab" + tab + ' .leftTableArea table tbody tr[data-include="true"]');
 				var mainTableRows = $("#tabBodies .tab" + tab + ' .mainTableArea table tbody tr[data-include="true"]');
 				for (var i = 0,ii=Math.max(leftTableRows.length,mainTableRows.length);i<ii;i++) {
-					if (leftTableRows[i]) $(leftTableRows[i]).removeClass("alt");
-					if (mainTableRows[i]) $(mainTableRows[i]).removeClass("alt");
-					if (i%2==0) {
-						if (leftTableRows[i]) $(leftTableRows[i]).addClass("alt");
-						if (mainTableRows[i]) $(mainTableRows[i]).addClass("alt");
+					if (leftTableRows[i]) {$(leftTableRows[i]).removeClass("alt");}
+					if (mainTableRows[i]) {$(mainTableRows[i]).removeClass("alt");}
+					if (i%2===0) {
+						if (leftTableRows[i]) {$(leftTableRows[i]).addClass("alt");}
+						if (mainTableRows[i]) {$(mainTableRows[i]).addClass("alt");}
 					}
 				}
 			},
@@ -339,6 +351,7 @@ try {
 			
 			/*Add a new filter!*/
 			addFilter: function(tab_id) {
+				startTime = new Date().getTime();
 				/*Show the apply button and the remove button, neither of which should be visible if there are no filters. But if we're running
 				this function here, there's going to be at least one, so turn 'em on.*/
 				$("#tabBodies .tab" + tab_id + " ul.filters li.filterAdd span.extras").show();
@@ -360,23 +373,23 @@ try {
 				of 1 (add link only) means there aren't any. Purpose of this next block
 				is to figure out the first column not being used as a filter and make that
 				the default selection for the new one that's being added.*/
+				
+				var i, ii, lastFilterId, defaultValue;
 				if (filters.length > 1) {
 					var usedFilters = [];
 					
 					/*Loop through current filters*/
-					for (var i = 0,ii=filters.length-2;i<=ii;i++) {
+					for (i = 0,ii=filters.length-2;i<=ii;i++) {
 						
 						/*and store the filters that are already being used*/
 						usedFilters.push($(filters[i]).children("select.filterBy").val());
 					}
 					
-					var defaultValue;
-					
 					/*Loop through all the column IDs*/
-					for (var i = 0,ii=cols.length;i<ii;i++) {
+					for (i = 0,ii=cols.length;i<ii;i++) {
 						
 						/*...until we find the first column id that isn't already being used as a filter*/
-						if (($.inArray(cols[i],usedFilters))==-1) {
+						if (($.inArray(cols[i],usedFilters))===-1) {
 							
 							/*...and save that column id for later*/
 							defaultValue = cols[i];
@@ -385,26 +398,28 @@ try {
 					}
 					
 					/*also, figure out the numerical index of the final existing filter. This will just be 1,2,3, etc.)*/
-					var lastFilterId = $(lastFilter).attr("class").replace("filter","")*1;
+					lastFilterId = $(lastFilter).attr("class").replace("filter","")*1;
 				} else {
 					
 					/*or even 0, if we don't have any yet.*/
-					var lastFilterId = 0;
+					lastFilterId = 0;
 				}
-				
+				console.log("after setting default Filter:" +  (new Date().getTime() - startTime));
 				/*Start building an HTML string for the new filter <select> options.*/
 				var optionsString = "";
 				
 				/*Loop through all the column ids...*/
-				for (var i = 0,ii=cols.length;i<ii;i++) {
+				for (i = 0,ii=cols.length;i<ii;i++) {
 					
 					/*and create options for each.*/
 					optionsString += '<option value="' + cols[i] + '">' + sfpDashboard.getColumnShortName(cols[i]) + "</option>";
 					if (i>0) {
 						/*Add a "---" disabled break to separate tab groups*/
-						if (getColumnDataAttr(cols[i],"tabAssoc") != getColumnDataAttr(cols[i-1],"tabAssoc")) optionsString += "<option value='0' disabled>---</option>";
+						if (getColumnDataAttr(cols[i],"tabAssoc") !== getColumnDataAttr(cols[i-1],"tabAssoc")) {optionsString += "<option value='0' disabled>---</option>";}
 					}
 				}
+				
+				console.log("after loop through columns:" + (new Date().getTime() - startTime));
 				
 				/*HTML of the whole damn <li>*/
 				var htmlString = '<select class="filterBy">' + optionsString + '</select>&nbsp;\
@@ -433,6 +448,8 @@ try {
 				$(newFilter).addClass("filter" + (lastFilterId+1));
 				$(newFilter).html(htmlString);
 				
+				console.log("after creating li:" +  (new Date().getTime() - startTime));
+				
 				//Add the new filter to the DOM before the final <li> for adding/removing filters.
 				$(addLink).before(newFilter);
 				
@@ -460,7 +477,7 @@ try {
 				var filters = $("#tabBodies .tab" + tab_id + " ul.filters li");
 				
 				//If we're getting rid of the last filter, hide the remove/apply buttons*/
-				if (filters.length == 2) {
+				if (filters.length === 2) {
 					$("#tabBodies .tab" + tab_id + " ul.filters li span.extras").hide();
 					$("#tabBodies .tab" + tab_id + " div.filterArea button.apply").hide();	
 				}
@@ -493,7 +510,7 @@ try {
 						privValue = $(li).children("input.val").val();
 						privMonth = $(li).find("select.month").val();
 						privDay = $(li).find("input.day").val();
-						privUseDate = (getColumnDataAttr(privFilterBy,"mode") == "date") ? true : false;
+						privUseDate = (getColumnDataAttr(privFilterBy,"mode") === "date") ? true : false;
 						comparisons.push({
 							filterBy: privFilterBy,
 							compare: privCompare,
@@ -517,19 +534,15 @@ try {
 					}
 					switch (filterObj.compare) {
 						case "equal":
-						return (cVal == fVal);
-						break;
+						return (cVal === fVal);
 						case "less":
 						return (cVal*1 < fVal*1);
-						break;
 						case "more":
-						return (cVal*1 > fVal*1); 
-						break;
+						return (cVal*1 > fVal*1);
 						case "contains":
-						return (cVal.indexOf(fVal) > -1 ? true : false);
-						break;	 
-					};
-				}
+						return (cVal.indexOf(fVal) > -1 ? true : false);	 
+					}
+				};
 				
 				/*Get all the rows of the main table(s)*/
 				var mainTableTrs = $("#tabBodies .tabBody .mainTableArea table tbody tr");
@@ -562,19 +575,19 @@ try {
 						}
 						
 						/*If the comparor function defined above tells us to hide it, hide it*/
-						if (cValue != "notInThisTab") {
-							if (comparor(cValue,filterArray[j]) == false) {
+						if (cValue !== "notInThisTab") {
+							if (comparor(cValue,filterArray[j]) === false) {
 								showRow = false;
 							}
 						}
 	
 						/*Or if the cell is blank, hide it in that situation as well*/
-						if (cValue == "") showRow = false;
+						if (cValue === "") {showRow = false;}
 					}
 					
 					/*Actually show/hide the row*/
-					if (cValue != "notInThisTab") {
-						if (showRow == false) {
+					if (cValue !== "notInThisTab") {
+						if (showRow === false) {
 							$("#tabBodies .tab" + tab_id + " table tr." + state).hide();
 							$("#tabBodies .tab" + tab_id + " table tr." + state).attr("data-include", "false");
 						} else {
@@ -599,7 +612,7 @@ try {
 			sortColumn: function(col_id) {
 				var tab = sfpDashboard.getActiveTab();
 				var sortOrder = 0;
-				if (col_id == sfpDashboard.sortedColumns.col) {
+				if (col_id === sfpDashboard.sortedColumns.col) {
 					sortOrder = 1 - sfpDashboard.sortedColumns.sorted;
 				}
 				
@@ -607,12 +620,12 @@ try {
 				
 				//need the index, not the id, because that's what tablesorter needs
 				var colIndex;
-				if (col_id=="default") {
+				if (col_id==="default") {
 					colIndex = 0;
 					sfpDashboard.revertSort = true;	
 					col_id = $("#tabBodies .tab" + sfpDashboard.getActiveTab() + " .topTableArea table tr:first td:first").attr("class");
 				} else {
-					colIndex = returnColIndex(col_id)
+					colIndex = returnColIndex(col_id);
 					sfpDashboard.revertSort = false;	
 				}
 				
@@ -663,7 +676,7 @@ try {
 			calcQuantity: function(col_id,mode) {
 				
 				//Shut it down if it's a text column.
-				if (getColumnDataAttr(col_id,"mode") == "text") {
+				if (getColumnDataAttr(col_id,"mode") === "text") {
 					return "&nbsp;";	
 				} else {
 					
@@ -675,48 +688,45 @@ try {
 					
 					//Loop through the cells and store the values in vArray;
 					var vArray = [];
-					var val;
-					for (var i = 0,ii=tds.length;i<ii;i++) {
+					var val, i, ii;
+					for (i = 0,ii=tds.length;i<ii;i++) {
 						if ($(tds[i]).children("span.sortData").length > 0) {
 							val = $(tds[i]).children("span.sortData").html()*1;
 						} else {
 							val = $(tds[i]).html()*1;
 						}
-						if (val != "" && !isNaN(val)) vArray.push(val);
+						if (val !== "" && !isNaN(val)) {vArray.push(val);}
 					}
 					
 					//sort the value array (so we can easily find the median)
 					vArray.sort();
 					
 					//If there's no data to do anything with, shut it down
-					if (vArray.length == 0) return "&nbsp;";
+					if (vArray.length === 0) {return "&nbsp;";}
 					
 					//Next, do different things depending on the data we want
 					switch (mode) {
 						case "average":
 						var total = 0;
-						for (var i = 0,ii=vArray.length;i<ii;i++) {
+						for (i = 0,ii=vArray.length;i<ii;i++) {
 							total += vArray[i];
 						}
 						return total/vArray.length;
-						break;
 						case "median":
 						
 						//for the median, need to handle it slightly differently depending if
 						//there's an odd or even number of values, but fairly straightforward -
 						//just get the middle element (or the average of two middle elements)
-						if (vArray.length%2==0) {
+						if (vArray.length%2===0) {
 							return (vArray[vArray.length/2-1] + vArray[vArray.length/2])/2;
 						} else {
 							return vArray[(vArray.length-1)/2];
-						}	
+						}
 						break;
 						case "high":
 							return Math.max.apply(Math,vArray);
-						break;
 						case "low":
 							return Math.min.apply(Math,vArray);
-						break;
 						default:
 						return "&nbsp;";
 					}
@@ -725,9 +735,16 @@ try {
 			
 			//Calculate max, min, average, median for all columns
 			fillFooter: function(tabToFill) {
-				
+				var db = this;
+				if (fLoopRunning === true) {
+					setTimeout(function() {
+						db.fillFooter(tabToFill);
+					},1000);
+					return false;
+				}
+				fLoopRunning = true;
 				//added this option to enable doing these calculations on hidden tabs in the background to speed up tab switching
-				if (!tabToFill) tabToFill = sfpDashboard.getActiveTab();
+				if (!tabToFill) {tabToFill = sfpDashboard.getActiveTab();}
 				
 				//get <tr>'s in the <tfoot> of the main table
 				var footerTrs = $("#tabBodies .tab" + tabToFill + " .mainTableArea table tfoot tr");
@@ -738,8 +755,63 @@ try {
 				var tds;
 				var col_id;
 				var quantity, formattedQuantity;
-				var roundMultiplier;
-				for (var i = 0,ii=footerTrs.length;i<ii;i++) {
+				var theTD;
+				var colAttrs = {};
+				var col_ids = [];
+				fLoopILength = footerTrs.length;
+				fLoopI = 0;
+				function innerLoop(i, j) {
+					//get column id
+					theTD = $(tds[j]);
+					if (typeof(col_ids[j]) === "undefined") {
+						col_ids[j] = theTD.attr("class");
+					} 
+					col_id = col_ids[j];
+					if (typeof(colAttrs[col_id]) === "undefined") {
+						var roundto = getColumnDataAttr(col_id,"roundto");
+						var roundMultiplier;
+						if (!isNaN(roundto)) {
+							roundMultiplier = Math.pow(10,roundto*1)*1;
+						}
+						colAttrs[col_id] = {
+							roundto: roundto,
+							roundMultiplier : roundMultiplier,
+							mode: getColumnDataAttr(col_id,"mode"),
+							prepend: getColumnDataAttr(col_id,"prepend"),
+							append: getColumnDataAttr(col_id,"append")
+						};
+					}
+					//actually calculate the thing (see above function);
+					quantity = sfpDashboard.calcQuantity(col_id,mode);
+					
+					formattedQuantity = sfpdashboard_shared_functions.formatData(colAttrs[col_id],quantity);
+			
+					
+					//write it to the table
+					//$(tds[j]).html("<span class='sortData'>" +quantity+"</span><span class='display'>" + formattedQuantity+"</span>");
+					theTD.children("span.sortData").html(quantity);
+					theTD.children("span.display").html(formattedQuantity);
+					
+					
+					setTimeout(function() {
+						fLoopJ++;
+						if (fLoopJ < fLoopJLength) {
+							
+							innerLoop(fLoopI,fLoopJ);
+						} else {
+							setTimeout(function() {
+								fLoopI++;
+								if (fLoopI < fLoopILength) {
+									outerLoop(fLoopI);
+								} else {
+									fLoopRunning = false;	
+								}
+							}, 1);
+						}
+					}, 1); 
+				}
+				
+				function outerLoop(i) {
 					tr = $(footerTrs[i]);
 					
 					//get the mode (the thing we're calculating - average, median, max, or min) - from the <tr>'s class name
@@ -749,38 +821,19 @@ try {
 					tds = tr.children("td");
 					
 					//Loop through those...
-					for (var j = 0,jj=tds.length;j<jj;j++) {
+					fLoopJ = 0;
+					fLoopJLength = tds.length;
+				
+					if (fLoopJ < fLoopJLength) {
 						
-						//get column id
-						col_id = $(tds[j]).attr("class");
-						
-						//actually calculate the thing (see above function);
-						quantity = sfpDashboard.calcQuantity(col_id,mode);
-						
-						//prettify the result
-						var attrs = {
-							roundto: getColumnDataAttr(col_id,"roundto"),
-							mode: getColumnDataAttr(col_id,"mode"),
-							prepend: getColumnDataAttr(col_id,"prepend"),
-							append: getColumnDataAttr(col_id,"append")
-						}
-						
-						formattedQuantity = sfpdashboard_shared_functions.formatData(attrs,quantity);
-						
-						//write it to the table
-						$(tds[j]).html("<span class='sortData'>" +quantity+"</span><span class='display'>" + formattedQuantity+"</span>");
+						innerLoop(i,fLoopJ);
 					}
 				}
 				
+				
+				outerLoop(fLoopI);
+				
 				footersNeedCalculation[tabToFill] = false;
-			},
-			
-			fillAllFooters: function() {
-				for (var tabToFill in footersNeedCalculation) {
-					if (footersNeedCalculation[tabToFill] == true) {
-						sfpDashboard.fillFooter(tabToFill);	
-					}
-				}
 			},
 			
 			//Slides the table of contents out of the way
@@ -818,27 +871,29 @@ try {
 				$("#chartGraphicContainer .barChartGraphic").append("<div class='barChartGraphicFlotCanvas'>");
 				var barChartData = {};
 				var columnData = $(".topTableArea table td." + dataset);
-				if (mode == "allStatesOneYear") {
+				if (mode === "allStatesOneYear") {
 					$.each($(".mainTableArea table tr td." + dataset + " span.sortData"),function() {
 						if ($(this).parents("td").first().is(":visible")) {
 							var stateCode = $(this).parents("tr").first()[0].className.split(/\s+/)[0];
-							if (stateCode=="row_high" || stateCode == "row_low") return false;
-							if (stateCode == "row_median") stateCode = "Median";
-							if (stateCode == "row_average") stateCode = "Mean";
-							if ($(this).text() != "") barChartData[stateCode] = $(this).text();
+							if (stateCode==="row_high" || stateCode === "row_low") {return false;}
+							if (stateCode === "row_median") {stateCode = "Median";}
+							if (stateCode === "row_average") {stateCode = "Mean";}
+							if ($(this).text() !== "") {barChartData[stateCode] = $(this).text();}
 						}
 					});
-					var flotifyData = function(data) {
-						var i=0, returnData = [], returnTicks = [],footerReturnData = [], footerReturnTicks = [],tData,tTick;
+					var flotifyData = function() {
+						var i=0, returnData = [], returnTicks = [],footerReturnData = [],tData;
 						for (var state in barChartData) {
-							tData =  [barChartData[state]*1,50-i-0.25];
-							returnTicks[i] = [50-i,state];
-							if (state != "Median" && state != "Mean") {
-								returnData[i] = tData;
-							} else {
-								footerReturnData[i] = tData;
+							if (barChartData.hasOwnProperty(state)) {
+								tData =  [barChartData[state]*1,50-i-0.25];
+								returnTicks[i] = [50-i,state];
+								if (state !== "Median" && state !== "Mean") {
+									returnData[i] = tData;
+								} else {
+									footerReturnData[i] = tData;
+								}
+								i++;
 							}
-							i++;
 						}
 						return [{data: returnData, ticks:returnTicks},{data: footerReturnData}];
 					};
@@ -851,8 +906,8 @@ try {
 						xaxis: {
 							tickFormatter: function(t) {
 								t = Math.round(t*Math.pow(10,columnData.data("roundto")))/Math.pow(10,columnData.data("roundto"));
-								if (columnData.data("prepend")) t = columnData.data("prepend") + t;
-								if (columnData.data("append")) t = t + columnData.data("append");
+								if (columnData.data("prepend")) {t = columnData.data("prepend") + t;}
+								if (columnData.data("append")) {t = t + columnData.data("append");}
 								return t;
 							},
 						},
@@ -869,7 +924,7 @@ try {
 							borderWidth:0
 						},
 						colors: ["#0081a4","#eb9123" ]
-					}
+					};
 					sfpDashboard.activeChart = $.plot($("#chartGraphicContainer .barChartGraphicFlotCanvas"),[{data:d[0].data},{data:d[1].data}],chartOptions);
 				} else {
 					var url = "getDataSubset.php?col=" + parms.colkey + "&state=" + parms.state;
@@ -877,12 +932,12 @@ try {
 					$("#chartGraphicContainer .barChartGraphic .barChartGraphicTitle h3").prepend(stateName + ": ");
 					$.get(url,function(data) {
 						var flotifyData = function(d) {
-							var i = 0,returnData = [],returnTicks=[];
+							var i = 0,ii,returnData = [];
 							for (i=0,ii=d.data.length;i<ii;i++) {
 								returnData[i] = [d.data[i].year,d.data[i].sort_data];	
 							}
 							return returnData;
-						}
+						};
 						var d = flotifyData(data);
 						var chartOptions = {
 							yaxis: {
@@ -892,8 +947,8 @@ try {
 										roundTo = columnData.data("roundto");
 									}
 									t = Math.round(t*Math.pow(10,roundTo))/Math.pow(10,roundTo);
-									if (columnData.data("prepend")) t = columnData.data("prepend") + t;
-									if (columnData.data("append")) t = t + columnData.data("append");
+									if (columnData.data("prepend")) {t = columnData.data("prepend") + t;}
+									if (columnData.data("append")) {t = t + columnData.data("append");}
 									return t;
 								},
 								min:0
@@ -912,7 +967,7 @@ try {
 							},
 							colors: ["#0081a4" ]
 								
-						}
+						};
 						sfpDashboard.activeChart = $.plot($("#chartGraphicContainer .barChartGraphicFlotCanvas"),[{data:d}],chartOptions);
 					});
 				}
@@ -953,16 +1008,17 @@ try {
 				sfpDashboard.setActiveTab(clickedTab);
 				sfpDashboard.assignAltClasses();
 				var whichFooters = sfpDashboard.getFootersNeedCalc();
-				if (whichFooters[clickedTab] == true) sfpDashboard.fillFooter();
+				if (whichFooters[clickedTab] === true) {sfpDashboard.fillFooter();}
 				sfpDashboard.syncCellSize();
 				sfpDashboard.recalcLayout();
 			}
-		}
+		};
 	}();
 	
 	//Some preliminary initial setup type things after defining all that above...
 	sfpDashboard.setActiveTab(1);
 	sfpDashboard.recalcLayout();
+	
 	
 	//We're gonna do some fancy scrolling stuff, and we need to keep track whether we're scrolling the window using
 	//this attribute, because IE handles the scroll event differently than Firefox or Chrome
@@ -978,7 +1034,7 @@ try {
 		setTimeout(function() {
 			
 			//Only do stuff if we're not scrolling
-			if (sfpDashboard.isScrolling == false) {
+			if (sfpDashboard.isScrolling === false) {
 				
 				//Get the current scroll position of the whole window
 				var scrollTop = $(window).scrollTop();
@@ -991,7 +1047,7 @@ try {
 					sfpDashboard.toScrollTo = maxScroll;
 					sfpDashboard.isScrolling = true; //and prevent anything else scrolling-related from happening before then
 					setTimeout(function() {
-						if (scrollTop > maxScroll) $(window).scrollTop(sfpDashboard.toScrollTo);
+						if (scrollTop > maxScroll) {$(window).scrollTop(sfpDashboard.toScrollTo);}
 						sfpDashboard.isScrolling = false;
 					},5);
 					
@@ -1017,12 +1073,17 @@ try {
 	//Initial table scroll synchronization and other stuff that needs doin'
 	$(".mainTableArea").scroll(sfpDashboard.syncTableScroll);
 	
+	
+	
 	//Ensures all rows (initially) are considered for alt class/footer calculation
 	$(".mainTableArea table tbody tr, .leftTableArea table tbody tr").attr("data-include","true");
 	
 	sfpDashboard.assignAltClasses();
+	
 	sfpDashboard.activateQuestionList();
+	
 	sfpDashboard.fillFooter();
+	
 	sfpDashboard.syncCellSize();
 	
 	//necessary to make the tablesorting work
@@ -1032,10 +1093,10 @@ try {
 		emptyTo: "bottom",
 		textExtraction: function(node) {	
 			var toReturn;
-			if (sfpDashboard.revertSort == true) {
+			if (sfpDashboard.revertSort === true) {
 				toReturn = $(node).parent().attr("data-initialsort");
 			} 
-			if (typeof(toReturn)=="undefined") {
+			if (typeof(toReturn)==="undefined") {
 				var attr = $(node).children("span.sortData").html();
 				if (typeof attr !== 'undefined' && attr !== false) {
 					toReturn = attr;
@@ -1048,6 +1109,7 @@ try {
 	};
 	
 	$(".mainTableArea table").tablesorter(sfpDashboard.sortOptions);
+
 	$(".leftTableArea table").tablesorter(sfpDashboard.sortOptions);
 	
 	$(".topTableArea table td").click(function() {
@@ -1060,7 +1122,7 @@ try {
 		e.stopPropagation();
 	});
 	
-	$(".topTableArea table td select").change(function(e) {
+	$(".topTableArea table td select").change(function() {
 		var year = $(this).val();
 		var colkey = $(this).data("colkey");
 		var url = "getDataSubset.php?year=" + year + "&col=" + colkey;
@@ -1074,7 +1136,7 @@ try {
 			for (var i=0,ii=d.data.length;i<ii;i++) {
 				theData = d.data[i];
 				baseSelector = ".tab" + tab + " .mainTableArea table tr." + theData.state + " td." + colid;
-				if (theData.override_data == null && theData.sort_data == null) {
+				if (theData.override_data === null && theData.sort_data === null) {
 					$(baseSelector + " span.display").html("");
 					$(baseSelector + " span.sortData").html("");
 				} else {
@@ -1087,12 +1149,12 @@ try {
 						}
 					}
 					
-					if (colData.prepend) overrideData = colData.prepend + ("" + overrideData);
-					if (colData.append) overrideData = ("" + overrideData) + colData.append;
-					if (theData.override_data) $(baseSelector).append("<div class=\"note\"><div class=\"noteButton\"><a href=\"#\">*</a></div><div class=\"noteData\">"+theData.override_data+"</div></div>");
+					if (colData.prepend) {overrideData = colData.prepend + ("" + overrideData);}
+					if (colData.append) {overrideData = ("" + overrideData) + colData.append;}
+					if (theData.override_data) {$(baseSelector).append("<div class=\"note\"><div class=\"noteButton\"><a href=\"#\">*</a></div><div class=\"noteData\">"+theData.override_data+"</div></div>");}
 					$(baseSelector + " span.display").html(overrideData);
 					$(baseSelector + " span.sortData").html(sortData);
-					if (colData.mode == "numeric") $(baseSelector).append(" <div class='lineChartButton'></div>");
+					if (colData.mode === "numeric") {$(baseSelector).append(" <div class='lineChartButton'></div>");}
 				}
 			}
 			sfpDashboard.fillFooter(tab);
@@ -1143,8 +1205,8 @@ try {
 	$("ul.filters li.filterAdd span.remove").click(function() {
 		var tab = sfpDashboard.getActiveTab();
 		sfpDashboard.removeFilter(tab);
-		if (typeof(sfpDashboard.filtersApplied[tab]) == "undefined") sfpDashboard.filtersApplied[tab] = 0;
-		if (sfpDashboard.filtersApplied[tab] > $("#tabBodies .tab" + tab + " ul.filters li").length) sfpDashboard.applyFilters(tab);
+		if (typeof(sfpDashboard.filtersApplied[tab]) === "undefined") {sfpDashboard.filtersApplied[tab] = 0;}
+		if (sfpDashboard.filtersApplied[tab] > $("#tabBodies .tab" + tab + " ul.filters li").length) {sfpDashboard.applyFilters(tab);}
 	});
 	
 	//activate filter apply button
@@ -1178,10 +1240,6 @@ try {
 		$("#tabWrapper").animate({scrollLeft:position.left},100);
 	});
 	
-	sfpDashboard.addPeriodicTask("calculateFooters",function() {
-		sfpDashboard.fillAllFooters();
-	});
-	
 	$(".barChartButton").click(function(e) {
 		e.stopPropagation();
 		sfpDashboard.makeBarChart({dataset:$(this).parents("td")[0].className},"allStatesOneYear");
@@ -1206,19 +1264,19 @@ try {
 		e.stopPropagation();
 	});
 	
-	$("#tabScroller .left").on("mouseenter", function(e) {
+	$("#tabScroller .left").on("mouseenter", function() {
 		sfpDashboard.tabScrollLeftOn();
 	});
 	
-	$("#tabScroller .right").on("mouseenter", function(e) {
+	$("#tabScroller .right").on("mouseenter", function() {
 		sfpDashboard.tabScrollRightOn();
 	});
 	
-	$("#tabScroller .left").on("mouseleave", function(e) {
+	$("#tabScroller .left").on("mouseleave", function() {
 		sfpDashboard.tabScrollLeftOff();
 	});
 	
-	$("#tabScroller .right").on("mouseleave", function(e) {
+	$("#tabScroller .right").on("mouseleave", function() {
 		sfpDashboard.tabScrollRightOff();
 	});
 	
