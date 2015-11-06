@@ -115,7 +115,7 @@
 							/*Output cells of the left frozen table (state names) - class name will be the two letter state code*/
 							$initialSortTracker = 0;
 							foreach ($statesArr as $id=>$state) { ?>
-								<tr class=<?php echo $id; ?>><td><span class="state"><?php echo $state;?></span></td></tr>
+								<tr class="<?php echo $id; ?>"><td><span class="state"><?php echo $state;?></span></td></tr>
 								<?php $initialSortTracker++; 
 							} ?>
                             </tbody>
@@ -174,6 +174,7 @@
                         </div>
                         <div class="mainTableArea">
                         	<div class="tableWrapper">
+                            	
                             	<table cellspacing="0" cellpadding="0">
                                 <thead class="dummySort">
                                 	<tr>
@@ -197,7 +198,7 @@
                                 foreach ($statesArr as $sid=>$state) {
 									
 									/*As with the left table, each row's class contains the two letter state abbreviation*/
-                                    echo "<tr class=".$sid." data-initialSort=\"".$initialSortTracker."\">\n";
+                                    echo "<tr class=\"".$sid."\" data-initialSort=\"".$initialSortTracker."\">\n";
 									$initialSortTracker++;
                                     foreach ($columnsArr as $cid=>$column) {
 										
@@ -212,6 +213,10 @@
 											} else $key_app = "_0";
 											
 											$key = $sid . $column["column_key"] . $key_app;
+											
+											$data["display_data"] = "";
+											$data["override_data"] = "";
+											$data["sort_data"] = null;
 											
 											if (array_key_exists($key,$dataArr)) {
 												/*Data exists*/
@@ -248,11 +253,12 @@
 												}
 												
 												//if (!empty($data["override_data"])) $data["display_data"] = $data["override_data"];
-											} else {
+											} /*else {
 												/*Data does not exist*/
-												$data["display_data"] = "";
-												$data["override_data"] = "";	
-											}
+												//$data["display_data"] = "";
+												//$data["override_data"] = "";
+												//$data["sort_data"] = "";	
+											//}
 											
 											/*Write the table cell (with class of the column id)*/
 											echo '<td class="'.$cid.'"' . ($column["mode"] == "numeric" ? ' align="right"' : "") . '>';

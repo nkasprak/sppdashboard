@@ -404,7 +404,7 @@ try {
 					/*or even 0, if we don't have any yet.*/
 					lastFilterId = 0;
 				}
-				console.log("after setting default Filter:" +  (new Date().getTime() - startTime));
+				
 				/*Start building an HTML string for the new filter <select> options.*/
 				var optionsString = "";
 				
@@ -419,7 +419,7 @@ try {
 					}
 				}
 				
-				console.log("after loop through columns:" + (new Date().getTime() - startTime));
+				
 				
 				/*HTML of the whole damn <li>*/
 				var htmlString = '<select class="filterBy">' + optionsString + '</select>&nbsp;\
@@ -448,7 +448,7 @@ try {
 				$(newFilter).addClass("filter" + (lastFilterId+1));
 				$(newFilter).html(htmlString);
 				
-				console.log("after creating li:" +  (new Date().getTime() - startTime));
+			
 				
 				//Add the new filter to the DOM before the final <li> for adding/removing filters.
 				$(addLink).before(newFilter);
