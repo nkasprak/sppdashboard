@@ -15,6 +15,7 @@
 	<div class="wrapper">
     <?php include("../config.php"); ?>
 	<?php include("../dashboard.php"); ?>
+    <?php $sD = new stateDashboard(); ?>
        	<div id="dataTab" class="tabBody">
         	<div id="dataTableOuterWrap" class="tableOuterWrap">
             	<div id="dataTableScroll" class="tableScroll">
@@ -23,45 +24,45 @@
                             <thead>
                             	<tr><th class="first">State</th>
                                 <?php 
-                             	foreach ($columnsArr as $column) : ?>
-                                	<?php //print_r($columnsArr); ?>
+                             	foreach ($sD->columnsArr as $column) : ?>
+                                	<?php //print_r($sD->columnsArr); ?>
                                 	<th class="title" colspan="2" <?php 
 									foreach ($column as $attrName=>$attr) {
 										if (!in_array($attrName,array("shortName","longName","columnOrder","column_key")) && isset($attr)) : ?>data-<?php echo $attrName;?>="<?php echo $attr;?>" <?php endif;
 									};
-									?>data-id="<?php echo $columnIDArr[$column["column_key"]];
+									?>data-id="<?php echo $sD->columnIDArr[$column["column_key"]];
 									?>" <?php 
-											echo (array_key_exists($column["column_key"],$yearsArr)) ? 
-											("data-year=\"".max($yearsArr[$column["column_key"]])."\"") :
+											echo (array_key_exists($column["column_key"],$sD->yearsArr)) ? 
+											("data-year=\"".max($sD->yearsArr[$column["column_key"]])."\"") :
 											("") ?>><?php echo $column["shortName"]; 
-													echo yearSelector($column["column_key"]); ?></th>
+													echo $sD->yearSelector($column["column_key"]); ?></th>
                                 <?php endforeach; ?>
                            	 	</tr><tr><th class="first">&nbsp;</th>
-                             	<?php foreach ($columnsArr as $column) : ?>
-                                	<th class = "actual" data-id="<?php echo $columnIDArr[$column["column_key"]];?>">Actual</th>
+                             	<?php foreach ($sD->columnsArr as $column) : ?>
+                                	<th class = "actual" data-id="<?php echo $sD->columnIDArr[$column["column_key"]];?>">Actual</th>
                                 	
-                                	<th class = "override" data-id="<?php echo $columnIDArr[$column["column_key"]]; ?>">Note</th>
+                                	<th class = "override" data-id="<?php echo $sD->columnIDArr[$column["column_key"]]; ?>">Note</th>
                             	<?php endforeach; ?>
 								</tr>                            
 							</thead>
                             <tbody>
                             <?php 
-                            foreach ($statesArr as $name=>$state) : ?>
+                            foreach ($sD->statesArr as $name=>$state) : ?>
                                <tr class="state" data-state="<?php echo $name; ?>"><td class="first"><?php echo $name;?></td>
-                                <?php foreach ($columnsArr as $column) : ?>
+                                <?php foreach ($sD->columnsArr as $column) : ?>
                                     <?php 
-									if (array_key_exists($column["column_key"],$yearsArr)) {
-										$key_app = "_" . max($yearsArr[$column["column_key"]]);
+									if (array_key_exists($column["column_key"],$sD->yearsArr)) {
+										$key_app = "_" . max($sD->yearsArr[$column["column_key"]]);
 									} else $key_app = "_0";
 									
 									$key = $name . $column["column_key"] . $key_app;
 									
 									//$key = $name . $column["column_key"];
-									if (array_key_exists($key,$dataArr)) $dataExists = true;
+									if (array_key_exists($key,$sD->dataArr)) $dataExists = true;
 									else $dataExists = false; ?>
-                                    <td class = "actual" data-id="<?php echo $columnIDArr[$column["column_key"]];?>"><textarea type="text" id="input_actual_<?php echo $columnIDArr[$column["column_key"]];?>"><?php echo ($dataExists ? addcslashes($dataArr[$key]["sort_data"],'"') : "");?></textarea></td>
+                                    <td class = "actual" data-id="<?php echo $sD->columnIDArr[$column["column_key"]];?>"><textarea type="text" id="input_actual_<?php echo $sD->columnIDArr[$column["column_key"]];?>"><?php echo ($dataExists ? addcslashes($sD->dataArr[$key]["sort_data"],'"') : "");?></textarea></td>
                                    
-                                    <td class = "override" data-id="<?php echo $columnIDArr[$column["column_key"]];?>"><textarea type="text" id="input_override_<?php echo $columnIDArr[$column["column_key"]]?>"><?php echo ($dataExists ? addcslashes($dataArr[$key]["override_data"],'"') : "");?></textarea></td>
+                                    <td class = "override" data-id="<?php echo $sD->columnIDArr[$column["column_key"]];?>"><textarea type="text" id="input_override_<?php echo $sD->columnIDArr[$column["column_key"]]?>"><?php echo ($dataExists ? addcslashes($sD->dataArr[$key]["override_data"],'"') : "");?></textarea></td>
                                     
                                 <?php endforeach; ?>
                                 </tr>
@@ -74,8 +75,8 @@
             <div id="columnPicker">
                 <p>Show columns:</p>
                 <select multiple class="columns">
-                    <?php foreach ($columnsArr as $column) : ?>
-                        <option selected value="<?php echo $columnIDArr[$column["column_key"]]; ?>"><?php echo $column["shortName"]; ?></option>
+                    <?php foreach ($sD->columnsArr as $column) : ?>
+                        <option selected value="<?php echo $sD->columnIDArr[$column["column_key"]]; ?>"><?php echo $column["shortName"]; ?></option>
                     <?php endforeach; ?>
                 </select>
                 <hr />
@@ -98,7 +99,7 @@
                 Download all data for a single state:
                 <form id="getStateSpreadsheet" action="../getStateSpreadsheet.php" method="GET">
                 	<select id="stateSpreadsheetSelector" name="state">
-                    <?php foreach ($statesArr as $name=>$state) : ?>
+                    <?php foreach ($sD->statesArr as $name=>$state) : ?>
                     	<option value = "<?php echo $name; ?>"><?php echo $state; ?></option>
                     <?php endforeach; ?>	
                     </select>
@@ -144,14 +145,14 @@
 									return preg_replace($theRegex,$lineBreak,$html);
 								}
 								?>
-                                <?php foreach ($columnsArr as $column): ?>
+                                <?php foreach ($sD->columnsArr as $column): ?>
                                 <tr>
                                 	<td><button data-role="addDataColumn">Insert Row Above</button></td>
-                                    <td><input data-role="colID" type="text" value="<?php echo $columnIDArr[$column["column_key"]]; ?>" /></td>
+                                    <td><input data-role="colID" type="text" value="<?php echo $sD->columnIDArr[$column["column_key"]]; ?>" /></td>
                                     <td><?php
-									if (array_key_exists($column["column_key"],$yearsArr)) {
+									if (array_key_exists($column["column_key"],$sD->yearsArr)) {
 										echo "<ul class=\"years\">"; 
-									foreach ($yearsArr[$column["column_key"]] as $year) { ?>
+									foreach ($sD->yearsArr[$column["column_key"]] as $year) { ?>
 										<li><span class="year"><?php echo $year;?></span> <span class="yDelete">[x]</span></li>
 									<?php }
 										echo "</ul>"; 
@@ -191,7 +192,7 @@
                 	<th>Tab ID</th><th>Tab Name</th><th>&nbsp;</th>
                 </thead>
                 <tbody>
-                <?php foreach ($tabsArr as $tab) { ?>
+                <?php foreach ($sD->tabsArr as $tab) { ?>
                 	<tr>
                         <td><?php echo $tab["tab_id"]; ?></td>
                         <td><input data-role="tab_title" type="text" value="<?php echo $tab["title"]; ?>" /></td>
