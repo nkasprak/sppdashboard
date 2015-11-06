@@ -100,7 +100,7 @@ try {
 			/*This is all basically the same as the syncWidths function, but no need to track accumulated
 			height because the scrolling behaves a bit differently.*/
 			//$("th, td").removeAttr("height");
-			$("th, td").css("height","default");
+			$("#tabBodies .tab" + activeTab + " th, #tabBodies .tab" + activeTab + " td, #tabBodies .tab" + activeTab + " .mainTableArea table, #tabBodies .tab" + activeTab + " .leftTableArea table").css("height","auto");
 			var allRows = $("#tabBodies .tab" + activeTab + " .mainTableArea table tr");
 			var leftRows = $("#tabBodies .tab" + activeTab + " .leftTableArea table tr");
 			var maxHeight;
@@ -562,11 +562,6 @@ try {
 				
 				/*Get all the rows of the main table(s)*/
 				var mainTableTrs = $("#tabBodies .tabBody .mainTableArea table tbody tr");
-				
-				$("	#tabBodies .tab" + tab_id + " .mainTableArea table, \
-					#tabBodies .tab" + tab_id + " .mainTableArea table td, \
-					#tabBodies .tab" + tab_id + " .leftTableArea table, \
-					#tabBodies .tab" + tab_id + " .leftTableArea table td").css("height","auto");
 				
 				/*Loop through the table rows*/
 				var state, tr, showRow, cValue, colId, numFilters=filterArray.length;
