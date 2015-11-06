@@ -175,9 +175,10 @@
                         </div>
                         <div class="mainTableArea">
                         	<div class="tableWrapper">
-                            	
-                            	<?php $sD->buildTable($tabIndex); ?>
-                            	
+                            	<?php 
+								if ($tabIndex == 1) {
+									$sD->buildTable($tabIndex);
+								}?>
                         	</div>
                         </div>
                     </div>

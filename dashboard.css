@@ -2,7 +2,6 @@
 /* CSS Document */
 /*Page styles*/
 body {
-	font-size:12px;
 	line-height:120%;
 	margin:0px;
 	padding:0px;
@@ -13,6 +12,10 @@ body {
 	color:#444;
 	word-wrap:break-word;
 	
+}
+
+#wrapper {
+	visibility:hidden;	
 }
 
 select {

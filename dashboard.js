@@ -155,6 +155,8 @@ try {
 			return rVal;
 		};
 		
+		var loadedTabs = {1:true};
+		
 		/*Public functions*/
 		return {
 			
@@ -174,11 +176,25 @@ try {
 			
 			//Changes the currently displayed tab
 			setActiveTab: function(tabID) {
+				var d = this;
 				activeTab = tabID;
-				$("#tabBodies .tabBody").hide();
-				$("#tabBodies .tab" + tabID).show();
-				$("#tabs .tab").removeClass("selected");
-				$("#tabs #tabPicker" + tabID).addClass("selected");
+				function finishLoading() {
+					$("#tabBodies .tabBody").hide();
+					$("#tabBodies .tab" + tabID).show();
+					$("#tabs .tab").removeClass("selected");
+					$("#tabs #tabPicker" + tabID).addClass("selected");
+				}
+				if (loadedTabs[tabID]) {
+					finishLoading();
+				} else {
+					finishLoading();
+					$.get("tableBuilder.php?tabIndex=" + tabID, function(response) {
+						loadedTabs[tabID] = true;
+						$("#tabBodies .tab" + tabID + " .mainTableArea .tableWrapper").html(response);
+						$("#tabBodies .tab" + tabID + " .mainTableArea table tbody tr").attr("data-include","true");
+						d.setupNewTab(tabID);
+					});
+				}
 			},
 			
 			//Gets a list of column IDs for a particular tab.
@@ -547,6 +563,11 @@ try {
 				/*Get all the rows of the main table(s)*/
 				var mainTableTrs = $("#tabBodies .tabBody .mainTableArea table tbody tr");
 				
+				$("	#tabBodies .tab" + tab_id + " .mainTableArea table, \
+					#tabBodies .tab" + tab_id + " .mainTableArea table td, \
+					#tabBodies .tab" + tab_id + " .leftTableArea table, \
+					#tabBodies .tab" + tab_id + " .leftTableArea table td").css("height","auto");
+				
 				/*Loop through the table rows*/
 				var state, tr, showRow, cValue, colId, numFilters=filterArray.length;
 				for (var i = 0,ii=mainTableTrs.length;i<ii;i++) {
@@ -736,6 +757,7 @@ try {
 			//Calculate max, min, average, median for all columns
 			fillFooter: function(tabToFill) {
 				var db = this;
+				if (!tabToFill) {tabToFill = sfpDashboard.getActiveTab();}
 				if (fLoopRunning === true) {
 					setTimeout(function() {
 						db.fillFooter(tabToFill);
@@ -744,7 +766,6 @@ try {
 				}
 				fLoopRunning = true;
 				//added this option to enable doing these calculations on hidden tabs in the background to speed up tab switching
-				if (!tabToFill) {tabToFill = sfpDashboard.getActiveTab();}
 				
 				//get <tr>'s in the <tfoot> of the main table
 				var footerTrs = $("#tabBodies .tab" + tabToFill + " .mainTableArea table tfoot tr");
@@ -863,6 +884,7 @@ try {
 			},
 			
 			makeBarChart: function(parms,mode) {
+				console.log("making a chart!");
 				var dataset = parms.dataset;
 				$("body").append($("<div id='backgroundOverlay'></div>"));
 				$("body").append($("<div id='chartGraphicContainer'></div>"));
@@ -1007,10 +1029,182 @@ try {
 			switchTab: function(clickedTab) {
 				sfpDashboard.setActiveTab(clickedTab);
 				sfpDashboard.assignAltClasses();
-				var whichFooters = sfpDashboard.getFootersNeedCalc();
-				if (whichFooters[clickedTab] === true) {sfpDashboard.fillFooter();}
+				/*var whichFooters = sfpDashboard.getFootersNeedCalc();
+				if (whichFooters[clickedTab] === true) {sfpDashboard.fillFooter();}*/
 				sfpDashboard.syncCellSize();
 				sfpDashboard.recalcLayout();
+			},
+			setupNewTab: function(tabID) {
+	
+				//Initial table scroll synchronization and other stuff that needs doin'
+				$(".tab" + tabID + " .mainTableArea").scroll(sfpDashboard.syncTableScroll);
+		
+				//Ensures all rows (initially) are considered for alt class/footer calculation
+				$(".tab" + tabID + " .mainTableArea table tbody tr, .tab" + tabID + " .leftTableArea table tbody tr").attr("data-include","true");
+				
+				sfpDashboard.assignAltClasses();
+				
+				sfpDashboard.activateQuestionList();
+				
+				sfpDashboard.fillFooter();
+				
+				sfpDashboard.syncCellSize();
+				
+				//necessary to make the tablesorting work
+				$(".tab" + tabID + " .mainTableArea table, .tab" + tabID + " .leftTableArea table").addClass("tableSorter");
+				sfpDashboard.sortedColumns = {col:"default",sorted:1}; //keeps track of column sort state
+				sfpDashboard.sortOptions = {
+					emptyTo: "bottom",
+					textExtraction: function(node) {	
+						var toReturn;
+						if (sfpDashboard.revertSort === true) {
+							toReturn = $(node).parent().attr("data-initialsort");
+						} 
+						if (typeof(toReturn)==="undefined") {
+							var attr = $(node).children("span.sortData").html();
+							if (typeof attr !== 'undefined' && attr !== false) {
+								toReturn = attr;
+							} else {
+								toReturn = $(node).children("span.display").html();
+							}
+						}
+						return toReturn;
+					}
+				};
+				
+				$(".tab" + tabID + " .mainTableArea table").tablesorter(sfpDashboard.sortOptions);
+			
+				$(".tab" + tabID + " .leftTableArea table").tablesorter(sfpDashboard.sortOptions);
+				
+				$(".tab" + tabID + " .topTableArea table td").click(function() {
+					var col = this.className;
+					sfpDashboard.sortColumn(col);
+					$("select.sortBy").val(col);
+				});
+				
+				$(".tab" + tabID + " .topTableArea table td select").click(function(e) {
+					e.stopPropagation();
+				});
+				
+				$(".tab" + tabID + " .topTableArea table td select").change(function() {
+					var year = $(this).val();
+					var colkey = $(this).data("colkey");
+					var url = "getDataSubset.php?year=" + year + "&col=" + colkey;
+					var tab = sfpDashboard.getActiveTab();
+					$.get(url,function(d) {
+						var theData, colid, colData, baseSelector, overrideData, sortData, roundFactor;
+						colid = d.colID;
+						colData = $(".tab" + tab + " .topTableArea table td." + colid).data();
+						//make blank first
+						$(".tab" + tab + " .mainTableArea table td." + colid).html("<span class=\"display\"></span><span class=\"sortData\"></span>");
+						for (var i=0,ii=d.data.length;i<ii;i++) {
+							theData = d.data[i];
+							baseSelector = ".tab" + tab + " .mainTableArea table tr." + theData.state + " td." + colid;
+							if (theData.override_data === null && theData.sort_data === null) {
+								$(baseSelector + " span.display").html("");
+								$(baseSelector + " span.sortData").html("");
+							} else {
+								overrideData = theData.sort_data;
+								sortData = theData.sort_data;
+								if (typeof(colData.roundto) !== "undefined") {
+									if (colData.roundto !== null) {
+										roundFactor = Math.pow(10,colData.roundto);
+										overrideData = Math.round(overrideData*roundFactor)/roundFactor;	
+									}
+								}
+								
+								if (colData.prepend) {overrideData = colData.prepend + ("" + overrideData);}
+								if (colData.append) {overrideData = ("" + overrideData) + colData.append;}
+								if (theData.override_data) {$(baseSelector).append("<div class=\"note\"><div class=\"noteButton\"><a href=\"#\">*</a></div><div class=\"noteData\">"+theData.override_data+"</div></div>");}
+								$(baseSelector + " span.display").html(overrideData);
+								$(baseSelector + " span.sortData").html(sortData);
+								if (colData.mode === "numeric") {$(baseSelector).append(" <div class='lineChartButton'></div>");}
+							}
+						}
+						sfpDashboard.fillFooter(tab);
+						sfpDashboard.syncCellSize();
+					});
+				});
+				
+				$("select.sortBy").change(function() {
+					var col = this.value;
+					sfpDashboard.sortColumn(col);
+				});
+				
+				$(".topLeftHeaderText").click(function() {
+					sfpDashboard.sortColumn("default");
+				});
+				
+				$(".tab" + tabID + " .mainTableArea table td").on("click",".noteButton",function() {
+					var theNote = $(this).next();
+					if (theNote.is(":visible")) {
+						$(this).next().hide();
+					} else {
+						$(this).next().show();
+					}
+					sfpDashboard.syncCellSize();
+				});
+				
+				$(".tab" + tabID + " .mainTableArea table td").on("click",".noteData",function() {
+					$(this).hide();
+					sfpDashboard.syncCellSize();
+				});
+				
+				/*Activate initial filter's column change functionality - this can probably be deleted
+				because there is no longer an initial filter*/
+				$(".tab" + tabID + " ul.filters select.filterBy").change(function() {
+					var filter = $(this).parent("li").attr("class").replace("filter","");
+					sfpDashboard.filterColumnChange(filter);
+				});
+				sfpDashboard.filterColumnChange(1);
+				
+				sfpDashboard.filtersApplied = [];
+				
+				//activate Add link
+				$(".tab" + tabID + " ul.filters li.filterAdd span.add").click(function() {
+					sfpDashboard.addFilter(sfpDashboard.getActiveTab());
+				});
+				
+				//activate Remove link
+				$(".tab" + tabID + " ul.filters li.filterAdd span.remove").click(function() {
+					var tab = sfpDashboard.getActiveTab();
+					sfpDashboard.removeFilter(tab);
+					if (typeof(sfpDashboard.filtersApplied[tab]) === "undefined") {sfpDashboard.filtersApplied[tab] = 0;}
+					if (sfpDashboard.filtersApplied[tab] > $("#tabBodies .tab" + tab + " ul.filters li").length) {sfpDashboard.applyFilters(tab);}
+				});
+				
+				//activate filter apply button
+				$(".tab" + tabID + " .filterArea button.apply").click(function() {
+					sfpDashboard.applyFilters(sfpDashboard.getActiveTab());
+				});
+				
+				//activate that little X in the corner of the table of contents
+				$(".tab" + tabID + " .dataDisplayArea .questionList .xbox").click(function() {
+					sfpDashboard.hideQuestionList();
+				});
+				
+				//activate the thing that opens the TOC back up
+				$(".tab" + tabID + " .dataDisplayArea .tableArea .openArrow").click(function() {
+					sfpDashboard.showQuestionList();
+				});
+				
+				
+				
+				$(".tab" + tabID + " .barChartButton").click(function(e) {
+					e.stopPropagation();
+					sfpDashboard.makeBarChart({dataset:$(this).parents("td")[0].className},"allStatesOneYear");
+					$(window).trigger("scroll");
+				});
+				
+				$(".tab" + tabID + " .mainTableArea td").on("click",".lineChartButton",function(e) {
+					e.stopPropagation();
+					var id = $(this).parents("td").first()[0].className;
+					var state = $(this).parents("tr").first()[0].className.split(/\s+/)[0];
+					var colkey = $(".topTableArea td." + id).data("column_key");
+					sfpDashboard.makeBarChart({state:state,dataset:id,colkey:colkey},"oneStateAllYears");
+					$(window).trigger("scroll");
+				});
+				
 			}
 		};
 	}();
@@ -1070,159 +1264,7 @@ try {
 		},50);
 	});
 	
-	//Initial table scroll synchronization and other stuff that needs doin'
-	$(".mainTableArea").scroll(sfpDashboard.syncTableScroll);
-	
-	
-	
-	//Ensures all rows (initially) are considered for alt class/footer calculation
-	$(".mainTableArea table tbody tr, .leftTableArea table tbody tr").attr("data-include","true");
-	
-	sfpDashboard.assignAltClasses();
-	
-	sfpDashboard.activateQuestionList();
-	
-	sfpDashboard.fillFooter();
-	
-	sfpDashboard.syncCellSize();
-	
-	//necessary to make the tablesorting work
-	$(".mainTableArea table, .leftTableArea table").addClass("tableSorter");
-	sfpDashboard.sortedColumns = {col:"default",sorted:1}; //keeps track of column sort state
-	sfpDashboard.sortOptions = {
-		emptyTo: "bottom",
-		textExtraction: function(node) {	
-			var toReturn;
-			if (sfpDashboard.revertSort === true) {
-				toReturn = $(node).parent().attr("data-initialsort");
-			} 
-			if (typeof(toReturn)==="undefined") {
-				var attr = $(node).children("span.sortData").html();
-				if (typeof attr !== 'undefined' && attr !== false) {
-					toReturn = attr;
-				} else {
-					toReturn = $(node).children("span.display").html();
-				}
-			}
-			return toReturn;
-		}
-	};
-	
-	$(".mainTableArea table").tablesorter(sfpDashboard.sortOptions);
-
-	$(".leftTableArea table").tablesorter(sfpDashboard.sortOptions);
-	
-	$(".topTableArea table td").click(function() {
-		var col = this.className;
-		sfpDashboard.sortColumn(col);
-		$("select.sortBy").val(col);
-	});
-	
-	$(".topTableArea table td select").click(function(e) {
-		e.stopPropagation();
-	});
-	
-	$(".topTableArea table td select").change(function() {
-		var year = $(this).val();
-		var colkey = $(this).data("colkey");
-		var url = "getDataSubset.php?year=" + year + "&col=" + colkey;
-		var tab = sfpDashboard.getActiveTab();
-		$.get(url,function(d) {
-			var theData, colid, colData, baseSelector, overrideData, sortData, roundFactor;
-			colid = d.colID;
-			colData = $(".tab" + tab + " .topTableArea table td." + colid).data();
-			//make blank first
-			$(".tab" + tab + " .mainTableArea table td." + colid).html("<span class=\"display\"></span><span class=\"sortData\"></span>");
-			for (var i=0,ii=d.data.length;i<ii;i++) {
-				theData = d.data[i];
-				baseSelector = ".tab" + tab + " .mainTableArea table tr." + theData.state + " td." + colid;
-				if (theData.override_data === null && theData.sort_data === null) {
-					$(baseSelector + " span.display").html("");
-					$(baseSelector + " span.sortData").html("");
-				} else {
-					overrideData = theData.sort_data;
-					sortData = theData.sort_data;
-					if (typeof(colData.roundto) !== "undefined") {
-						if (colData.roundto !== null) {
-							roundFactor = Math.pow(10,colData.roundto);
-							overrideData = Math.round(overrideData*roundFactor)/roundFactor;	
-						}
-					}
-					
-					if (colData.prepend) {overrideData = colData.prepend + ("" + overrideData);}
-					if (colData.append) {overrideData = ("" + overrideData) + colData.append;}
-					if (theData.override_data) {$(baseSelector).append("<div class=\"note\"><div class=\"noteButton\"><a href=\"#\">*</a></div><div class=\"noteData\">"+theData.override_data+"</div></div>");}
-					$(baseSelector + " span.display").html(overrideData);
-					$(baseSelector + " span.sortData").html(sortData);
-					if (colData.mode === "numeric") {$(baseSelector).append(" <div class='lineChartButton'></div>");}
-				}
-			}
-			sfpDashboard.fillFooter(tab);
-			sfpDashboard.syncCellSize();
-		});
-	});
-	
-	$("select.sortBy").change(function() {
-		var col = this.value;
-		sfpDashboard.sortColumn(col);
-	});
-	
-	$(".topLeftHeaderText").click(function() {
-		sfpDashboard.sortColumn("default");
-	});
-	
-	$(".mainTableArea table td").on("click",".noteButton",function() {
-		var theNote = $(this).next();
-		if (theNote.is(":visible")) {
-			$(this).next().hide();
-		} else {
-			$(this).next().show();
-		}
-		sfpDashboard.syncCellSize();
-	});
-	
-	$(".mainTableArea table td").on("click",".noteData",function() {
-		$(this).hide();
-		sfpDashboard.syncCellSize();
-	});
-	
-	/*Activate initial filter's column change functionality - this can probably be deleted
-	because there is no longer an initial filter*/
-	$("ul.filters select.filterBy").change(function() {
-		var filter = $(this).parent("li").attr("class").replace("filter","");
-		sfpDashboard.filterColumnChange(filter);
-	});
-	sfpDashboard.filterColumnChange(1);
-	
-	sfpDashboard.filtersApplied = [];
-	
-	//activate Add link
-	$("ul.filters li.filterAdd span.add").click(function() {
-		sfpDashboard.addFilter(sfpDashboard.getActiveTab());
-	});
-	
-	//activate Remove link
-	$("ul.filters li.filterAdd span.remove").click(function() {
-		var tab = sfpDashboard.getActiveTab();
-		sfpDashboard.removeFilter(tab);
-		if (typeof(sfpDashboard.filtersApplied[tab]) === "undefined") {sfpDashboard.filtersApplied[tab] = 0;}
-		if (sfpDashboard.filtersApplied[tab] > $("#tabBodies .tab" + tab + " ul.filters li").length) {sfpDashboard.applyFilters(tab);}
-	});
-	
-	//activate filter apply button
-	$(".filterArea button.apply").click(function() {
-		sfpDashboard.applyFilters(sfpDashboard.getActiveTab());
-	});
-	
-	//activate that little X in the corner of the table of contents
-	$(".dataDisplayArea .questionList .xbox").click(function() {
-		sfpDashboard.hideQuestionList();
-	});
-	
-	//activate the thing that opens the TOC back up
-	$(".dataDisplayArea .tableArea .openArrow").click(function() {
-		sfpDashboard.showQuestionList();
-	});
+	sfpDashboard.setupNewTab(1);
 	
 	//activate tab selection
 	$("#tabs li.tab").click(function() {
@@ -1238,21 +1280,6 @@ try {
 		sfpDashboard.switchTab(tab);
 		position = $("#tabPicker" + tab).position();
 		$("#tabWrapper").animate({scrollLeft:position.left},100);
-	});
-	
-	$(".barChartButton").click(function(e) {
-		e.stopPropagation();
-		sfpDashboard.makeBarChart({dataset:$(this).parents("td")[0].className},"allStatesOneYear");
-		$(window).trigger("scroll");
-	});
-	
-	$(".mainTableArea td").on("click",".lineChartButton",function(e) {
-		e.stopPropagation();
-		var id = $(this).parents("td").first()[0].className;
-		var state = $(this).parents("tr").first()[0].className.split(/\s+/)[0];
-		var colkey = $(".topTableArea td." + id).data("column_key");
-		sfpDashboard.makeBarChart({state:state,dataset:id,colkey:colkey},"oneStateAllYears");
-		$(window).trigger("scroll");
 	});
 	
 	$("body").on("click","#chartGraphicContainer",function(e) {
@@ -1279,6 +1306,8 @@ try {
 	$("#tabScroller .right").on("mouseleave", function() {
 		sfpDashboard.tabScrollRightOff();
 	});
+	
+	$("#wrapper").css("visibility","visible");
 	
 	//recalculate layout on window resize
 	$(window).resize(function() {
