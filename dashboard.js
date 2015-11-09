@@ -54,6 +54,9 @@ try {
 		var fLoopILength;
 		var fLoopJLength;
 		var fLoopRunning = false;
+		var neededTabs;
+		var filterApplicationInProgress = false;
+		var savedFilterArray;
 		
 		//private functions follow
 		
@@ -156,6 +159,7 @@ try {
 		};
 		
 		var loadedTabs = {1:true};
+		var formattedTabs = {};
 		
 		/*Public functions*/
 		return {
@@ -165,6 +169,17 @@ try {
 				return activeTab;	
 			},
 			
+			tabOrders: (function() {
+				var r = {};
+				var tabs = $("#tabs .tab");
+				var tabID;
+				for (var i = 0,ii=tabs.length;i<ii;i++) {
+					tabID = tabs.eq(i).attr("id").substr(9);
+					r[tabID] = i;	
+				}
+				return r;
+			})(),
+			
 			//Adds a function to be executed in the period tasks private method that runs every second (useful for background stuff)
 			addPeriodicTask: function(taskID, task) {
 				periodicTasks[taskID] = task;
@@ -172,6 +187,15 @@ try {
 			
 			removePeriodicTask: function(taskID) {
 				delete periodicTasks[taskID];
+			},
+			
+			loadTabData: function(tabID, onComplete) {
+				$.get("tableBuilder.php?tabIndex=" + tabID, function(response) {
+					loadedTabs[tabID] = true;
+					$("#tabBodies .tab" + tabID + " .mainTableArea .tableWrapper").html(response);
+					$("#tabBodies .tab" + tabID + " .mainTableArea table tbody tr").attr("data-include","true");
+					if (typeof(onComplete)==="function") {onComplete();}
+				});
 			},
 			
 			//Changes the currently displayed tab
@@ -186,12 +210,12 @@ try {
 				}
 				if (loadedTabs[tabID]) {
 					finishLoading();
+					if (!formattedTabs[tabID]) {
+						d.setupNewTab(tabID);	
+					}
 				} else {
 					finishLoading();
-					$.get("tableBuilder.php?tabIndex=" + tabID, function(response) {
-						loadedTabs[tabID] = true;
-						$("#tabBodies .tab" + tabID + " .mainTableArea .tableWrapper").html(response);
-						$("#tabBodies .tab" + tabID + " .mainTableArea table tbody tr").attr("data-include","true");
+					d.loadTabData(tabID, function() {
 						d.setupNewTab(tabID);
 					});
 				}
@@ -208,7 +232,7 @@ try {
 					for (i = 1,ii=$("#tabBodies .tabBody").length;i<=ii;i++) {
 						
 						//Get the tob row as a set of cells
-						tds = $($("#tabBodies .tab" + i + " .mainTableArea table tbody tr")[0]).children("td");
+						tds = $($("#tabBodies .tab" + i + " .topTableArea table tbody tr")[0]).children("td");
 						
 						//Loop through the cells and extract the column id from the class.
 						for (var j = 0,jj=tds.length;j<jj;j++) {
@@ -367,7 +391,7 @@ try {
 			
 			/*Add a new filter!*/
 			addFilter: function(tab_id) {
-				startTime = new Date().getTime();
+				
 				/*Show the apply button and the remove button, neither of which should be visible if there are no filters. But if we're running
 				this function here, there's going to be at least one, so turn 'em on.*/
 				$("#tabBodies .tab" + tab_id + " ul.filters li.filterAdd span.extras").show();
@@ -423,16 +447,30 @@ try {
 				
 				/*Start building an HTML string for the new filter <select> options.*/
 				var optionsString = "";
+				var colTabs = [];
+				for (i = 0,ii=cols.length;i<ii;i++) {
+					colTabs.push([cols[i],sfpDashboard.tabOrders[getColumnDataAttr(cols[i],"tabAssoc")*1],i]);	
+				}
+				colTabs.sort(function(a,b) {
+					if (a[1] === b[1]) {
+						return a[2] - b[2];	
+					} else {
+						return a[1] - b[1];
+					}
+				});
+				
+				
 				
 				/*Loop through all the column ids...*/
-				for (i = 0,ii=cols.length;i<ii;i++) {
-					
-					/*and create options for each.*/
-					optionsString += '<option value="' + cols[i] + '">' + sfpDashboard.getColumnShortName(cols[i]) + "</option>";
+				for (i = 0,ii=colTabs.length;i<ii;i++) {
 					if (i>0) {
 						/*Add a "---" disabled break to separate tab groups*/
-						if (getColumnDataAttr(cols[i],"tabAssoc") !== getColumnDataAttr(cols[i-1],"tabAssoc")) {optionsString += "<option value='0' disabled>---</option>";}
+						if (getColumnDataAttr(colTabs[i][0],"tabAssoc") !== getColumnDataAttr(colTabs[i-1][0],"tabAssoc")) {optionsString += "<option value='0' disabled>---</option>";}
 					}
+					
+					/*and create options for each.*/
+					optionsString += '<option value="' + colTabs[i][0] + '">' + sfpDashboard.getColumnShortName(colTabs[i][0]) + "</option>";
+					
 				}
 				
 				
@@ -511,14 +549,16 @@ try {
 			},
 			
 			/*Apply the currently displayed filters. This is a bit complicated, so here goes...*/
-			applyFilters: function(tab_id) {
-				footersNeedCalculation[tab_id] = true;
-				sfpDashboard.filtersApplied[tab_id] = $("#tabBodies .tab" + tab_id + " ul.filters li").length;
+			applyFilters: function(tab_id, ignore_lock) {
+				if (filterApplicationInProgress && typeof(ignore_lock)==="undefined") {
+					return false;	
+				}
+				filterApplicationInProgress = true;
 				
 				/*Loop through relevant DOM elements and extract the necessary data*/
 				var filterArray = function() {
 					var comparisons = [];
-					var lis = $("#tabBodies .tab" + tab_id + " ul.filters li"), li, privFilterBy, privCompare, privValue, privMonth, privDay, privUseDate;
+					var lis = $("#tabBodies .tab" + tab_id + " ul.filters li"), li, privFilterBy, privCompare, privValue, privMonth, privDay, privUseDate, privTabAssoc;
 					for (var i = 0,ii=lis.length-1; i<ii; i++) {
 						li = lis[i];
 						privFilterBy = $(li).children("select.filterBy").val();
@@ -527,17 +567,51 @@ try {
 						privMonth = $(li).find("select.month").val();
 						privDay = $(li).find("input.day").val();
 						privUseDate = (getColumnDataAttr(privFilterBy,"mode") === "date") ? true : false;
+						privTabAssoc = getColumnDataAttr(privFilterBy,"tabAssoc");
 						comparisons.push({
 							filterBy: privFilterBy,
 							compare: privCompare,
 							value: privValue,
 							month: privMonth,
 							day: privDay,
-							useDate: privUseDate
+							useDate: privUseDate,
+							tab: privTabAssoc
 						});
 					}
 					return comparisons;
 				}();
+				
+				savedFilterArray = filterArray;
+				
+				/*check if all necessary tabs are loaded*/
+				
+				function checkIfFinishedLoading() {
+					var finishLoading = true;
+					for (var i=0,ii=savedFilterArray.length;i<ii;i++) {
+						if (!loadedTabs[savedFilterArray[i].tab]) {
+							console.log("tab " + savedFilterArray[i].tab + " not loaded; waiting");
+							finishLoading = false;		
+						}
+					}
+					if (finishLoading) {
+						sfpDashboard.applyFilters(tab_id, true);	
+					}
+				}
+				
+				var continueWithFilter = true;
+				for (i = 0,ii=savedFilterArray.length;i<ii;i++) {
+					if (!loadedTabs[savedFilterArray[i].tab]) {
+						sfpDashboard.loadTabData(savedFilterArray[i].tab, checkIfFinishedLoading);
+						continueWithFilter = false;
+					}
+				}
+				
+				if (!continueWithFilter) {
+					return false;	
+				}
+				
+				footersNeedCalculation[tab_id] = true;
+				sfpDashboard.filtersApplied[tab_id] = $("#tabBodies .tab" + tab_id + " ul.filters li").length;
 				
 				/*Generalized comparison function to check if a filter applies to a particular row.
 				cVal is the value of the cell, fVal is the value of the filter.*/
@@ -577,6 +651,9 @@ try {
 					/*Loop through each active filter*/
 					for (var j = 0;j<numFilters;j++) {
 						colId = filterArray[j].filterBy;
+						
+						/*start HERE next week*/
+						/*You need to find a way to load the tabs for any filters selected, and delay execution of the filer apply until they're all loaded.*/
 						
 						/*Find the cell in this row corresponding to the filter being examined*/
 						/*If the cell has special "sortData" (hidden numeric data in place of text) use that*/
@@ -619,6 +696,7 @@ try {
 				sfpDashboard.recalcLayout();
 				sfpDashboard.syncCellSize(); //this seems to need to be done both before and after.
 				sfpDashboard.assignAltClasses();
+				filterApplicationInProgress = false;
 				
 			}, /*end applyFilters*/
 			
@@ -1031,6 +1109,8 @@ try {
 			},
 			setupNewTab: function(tabID) {
 	
+				if (formattedTabs[tabID]) {return false;}
+	
 				//Initial table scroll synchronization and other stuff that needs doin'
 				$(".tab" + tabID + " .mainTableArea").scroll(sfpDashboard.syncTableScroll);
 		
@@ -1199,6 +1279,8 @@ try {
 					sfpDashboard.makeBarChart({state:state,dataset:id,colkey:colkey},"oneStateAllYears");
 					$(window).trigger("scroll");
 				});
+				
+				formattedTabs[tabID] = true;
 				
 			}
 		};
