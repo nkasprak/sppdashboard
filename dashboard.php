@@ -184,10 +184,12 @@ class stateDashboard {
 		
 		$tabsResult = $this->mysqli->query("SELECT * FROM tabs ORDER BY `tab_order`");
 		
+		$order = 0;
 		while ($row = $tabsResult->fetch_array(MYSQLI_ASSOC)) {
-			$this->tabsArr[$row["tab_order"]] = $row;	
+			$this->tabsArr[$order] = $row;	
 			array_push($this->tabBounds,$row["tab_id"]); /*Will use to keep track of max/min tabs ids*/
-			$this->tabRevOrder[$row["tab_id"]] = $row["tab_order"];
+			$this->tabRevOrder[$row["tab_id"]] = $order;
+			$order++;
 		}
 		
 		$yearsResult = $this->mysqli->query("SELECT * FROM column_years");
@@ -217,11 +219,15 @@ class stateDashboard {
 		$this->lowTab = min($this->tabBounds);
 		$this->highTab = max($this->tabBounds);
 		
-		
 		/*Sorts columns by tab first, then order within tab second*/
 		uasort($this->columnsArr, function($a,$b) {
-			if ($a["tabAssoc"] == $b["tabAssoc"]) return $a["columnOrder"] - $b["columnOrder"];
-			else return $this->tabRevOrder[$a["tabAssoc"]] - $this->tabRevOrder[$b["tabAssoc"]];
+			if ($a["tabAssoc"] == $b["tabAssoc"]) {
+				return $a["columnOrder"] - $b["columnOrder"];
+			} else if (isset($this->tabRevOrder[$a["tabAssoc"]]) && isset($this->tabRevOrder[$b["tabAssoc"]])) {
+				return $this->tabRevOrder[$a["tabAssoc"]] - $this->tabRevOrder[$b["tabAssoc"]];
+			} else {
+				return 0;	
+			}
 		});
 	
 	}

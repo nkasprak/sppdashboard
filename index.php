@@ -158,7 +158,7 @@
 												} 
 												$tdAttrString .= ' class="'.$id.'">';
 												if (array_key_exists($column["column_key"],$sD->yearsArr)) {
-													$tdAttrString .= $sD->yearSelector($column["column_key"]) . " ";
+													$tdAttrString .= $sD->yearSelector($column["column_key"]) . "<br />";
 												}
 												$tdAttrString .= "<span class='longName'>" . $column['longName']."</span>";
 												if ($column['mode'] == "numeric") $tdAttrString .= " <div class='barChartButton'></div></td>\n";
